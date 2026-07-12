@@ -1,27 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Calculator, TrendingUp, DollarSign, Target, ChevronRight, Sparkles, PiggyBank, Rocket, Lightbulb, Play, Download } from 'lucide-react';
 
-const COLORS = { primary: '#2B72D4', mid: '#1A56B0', accent: '#EBF2FC', surface: '#FFFFFF', border: '#2B72D420', textBody: '#374151', textSecondary: '#6B7280', positive: '#22C55E', bg: '#F0F5FB' };
+const COLORS = { primary: '#2B72D4', mid: '#1A56B0', accent: 'rgba(43,114,212,0.14)', accentLt: '#5B9EE8', surface: '#0D1526', surfaceHover: '#16223D', border: 'rgba(255,255,255,0.14)', textH: '#FFFFFF', textBody: 'rgba(255,255,255,0.85)', textSecondary: 'rgba(255,255,255,0.55)', positive: '#22C55E', bg: '#060810' };
+const PDF_COLORS = { primary: '#2B72D4', mid: '#1A56B0' }; // PDF остаётся светлым (печать)
 
 const TabBtn = ({ id, activeTab, setActiveTab, icon: Icon, label }) => (
-  <button onClick={() => setActiveTab(id)} className="flex items-center gap-2 px-4 py-3 rounded-xl font-medium whitespace-nowrap transition-all" style={activeTab === id ? { backgroundColor: COLORS.primary, color: 'white' } : { backgroundColor: 'white', color: COLORS.primary, border: `1px solid ${COLORS.border}` }}>
+  <button onClick={() => setActiveTab(id)} className="flex items-center gap-2 px-4 py-3 rounded-xl font-medium whitespace-nowrap transition-all" style={activeTab === id ? { backgroundColor: COLORS.primary, color: 'white' } : { backgroundColor: COLORS.surface, color: COLORS.accentLt, border: `1px solid ${COLORS.border}` }}>
     <Icon size={18} /><span className="hidden sm:inline">{label}</span>
   </button>
 );
 
 const Input = ({ label, value, onChange, suffix, hint }) => (
   <div className="space-y-1">
-    <label className="text-sm font-medium" style={{ color: COLORS.primary }}>{label}</label>
+    <label className="text-sm font-medium" style={{ color: COLORS.accentLt }}>{label}</label>
     <div className="relative">
-      <input type="text" value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-4 py-3 border-2 rounded-xl font-semibold pr-12" style={{ backgroundColor: '#FFFBEB', borderColor: '#FCD34D', color: COLORS.primary }} />
-      {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: COLORS.primary + '80' }}>{suffix}</span>}
+      <input type="text" value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-4 py-3 border-2 rounded-xl font-semibold pr-12" style={{ backgroundColor: COLORS.surfaceHover, borderColor: 'rgba(43,114,212,0.45)', color: COLORS.textH }} />
+      {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: COLORS.textSecondary }}>{suffix}</span>}
     </div>
-    {hint && <p className="text-xs" style={{ color: COLORS.primary + '99' }}>{hint}</p>}
+    {hint && <p className="text-xs" style={{ color: COLORS.textSecondary }}>{hint}</p>}
   </div>
 );
 
 const ResultCard = ({ icon: Icon, label, value, sub, hl }) => (
-  <div className="p-5 rounded-2xl shadow-lg" style={{ backgroundColor: hl ? COLORS.primary : 'white', color: hl ? 'white' : COLORS.primary }}>
+  <div className="p-5 rounded-2xl shadow-lg" style={{ backgroundColor: hl ? COLORS.primary : COLORS.surfaceHover, color: 'white', border: hl ? 'none' : `1px solid ${COLORS.border}` }}>
     <div className="flex items-start justify-between">
       <div><p className="text-sm mb-1" style={{ opacity: 0.7 }}>{label}</p><p className="text-2xl font-bold">{value}</p>{sub && <p className="text-xs mt-1" style={{ opacity: 0.6 }}>{sub}</p>}</div>
       <div className="p-3 rounded-xl" style={{ backgroundColor: hl ? 'rgba(255,255,255,0.2)' : COLORS.accent }}><Icon size={24} /></div>
@@ -32,20 +33,20 @@ const ResultCard = ({ icon: Icon, label, value, sub, hl }) => (
 const ExpenseRow = ({ expense, onUpdate, onRemove, isVar }) => (
   <div className="space-y-1">
     <div className="hidden sm:flex items-center gap-2 p-3 rounded-xl group" style={{ backgroundColor: COLORS.accent }}>
-      <input type="text" value={expense.name} onChange={(e) => onUpdate(expense.id, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white border rounded-lg text-sm min-w-0" style={{ borderColor: COLORS.primary + '20', color: COLORS.primary }} />
-      <input type="text" value={isVar ? expense.percent : expense.amount} onChange={(e) => onUpdate(expense.id, isVar ? 'percent' : 'amount', e.target.value)} className="w-24 px-3 py-2 border rounded-lg font-semibold text-right" style={{ borderColor: COLORS.primary + '20', color: COLORS.primary, backgroundColor: '#FFFBEB' }} />
-      <span className="text-sm w-8" style={{ color: COLORS.primary + '80' }}>{isVar ? '%' : 'R$'}</span>
+      <input type="text" value={expense.name} onChange={(e) => onUpdate(expense.id, 'name', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm min-w-0" style={{ backgroundColor: COLORS.surfaceHover, borderColor: COLORS.border, color: COLORS.textH }} />
+      <input type="text" value={isVar ? expense.percent : expense.amount} onChange={(e) => onUpdate(expense.id, isVar ? 'percent' : 'amount', e.target.value)} className="w-24 px-3 py-2 border rounded-lg font-semibold text-right" style={{ borderColor: COLORS.border, color: COLORS.textH, backgroundColor: COLORS.surfaceHover }} />
+      <span className="text-sm w-8" style={{ color: COLORS.textSecondary }}>{isVar ? '%' : 'R$'}</span>
       <button onClick={() => onRemove(expense.id)} className="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-100" style={{ color: '#EF4444' }}><Trash2 size={18} /></button>
     </div>
     <div className="sm:hidden p-3 rounded-xl" style={{ backgroundColor: COLORS.accent }}>
-      <input type="text" value={expense.name} onChange={(e) => onUpdate(expense.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-white border rounded-lg text-sm mb-2" style={{ borderColor: COLORS.primary + '20', color: COLORS.primary }} />
+      <input type="text" value={expense.name} onChange={(e) => onUpdate(expense.id, 'name', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm mb-2" style={{ backgroundColor: COLORS.surfaceHover, borderColor: COLORS.border, color: COLORS.textH }} />
       <div className="flex items-center gap-2">
-        <input type="text" value={isVar ? expense.percent : expense.amount} onChange={(e) => onUpdate(expense.id, isVar ? 'percent' : 'amount', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg font-semibold" style={{ borderColor: COLORS.primary + '20', color: COLORS.primary, backgroundColor: '#FFFBEB' }} />
-        <span className="text-sm" style={{ color: COLORS.primary + '80' }}>{isVar ? '%' : 'R$'}</span>
+        <input type="text" value={isVar ? expense.percent : expense.amount} onChange={(e) => onUpdate(expense.id, isVar ? 'percent' : 'amount', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg font-semibold" style={{ borderColor: COLORS.border, color: COLORS.textH, backgroundColor: COLORS.surfaceHover }} />
+        <span className="text-sm" style={{ color: COLORS.textSecondary }}>{isVar ? '%' : 'R$'}</span>
         <button onClick={() => onRemove(expense.id)} className="p-2 rounded-lg hover:bg-red-100" style={{ color: '#EF4444' }}><Trash2 size={18} /></button>
       </div>
     </div>
-    {expense.hint && <p className="text-xs ml-3" style={{ color: COLORS.primary + '80' }}>* {expense.hint}</p>}
+    {expense.hint && <p className="text-xs ml-3" style={{ color: COLORS.textSecondary }}>* {expense.hint}</p>}
   </div>
 );
 
@@ -54,7 +55,7 @@ const RoadmapRow = ({ goal, reachN, note, hl, avgReach, reelsPerWeek }) => {
   const pubs = avgReach > 0 ? Math.max(1, Math.ceil(reachN / avgReach)) : 1;
   const weeks = avgReach > 0 && reelsPerWeek > 0 ? Math.max(1, Math.ceil(reachN / avgReach / reelsPerWeek)) : 1;
   return (
-    <div className="p-4 rounded-xl" style={{ backgroundColor: hl ? COLORS.primary : COLORS.accent, color: hl ? 'white' : COLORS.primary }}>
+    <div className="p-4 rounded-xl" style={{ backgroundColor: hl ? COLORS.primary : COLORS.accent, color: 'white' }}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex-1 min-w-[200px]"><h3 className="font-bold">{goal}</h3><p className="text-sm" style={{ opacity: 0.7 }}>{note}</p></div>
         <div className="flex gap-6 text-center">
@@ -241,7 +242,7 @@ const DoubleSalesCalculator = () => {
           const footerY = pdfHeight - margin - footerImgHeight - footerOffset;
           const footerImgData = footerCanvas.toDataURL('image/png');
           pdf.addImage(footerImgData, 'PNG', margin, footerY, footerImgWidth, footerImgHeight);
-          pdf.link(margin, footerY, pdfWidth - margin * 2, footerImgHeight, { url: 'https://yuliyatsapova.com/' });
+          pdf.link(margin, footerY, pdfWidth - margin * 2, footerImgHeight, { url: 'https://yuliyatsapova.com.br/' });
         }
         pdf.setFontSize(9);
         pdf.setTextColor(150, 150, 150);
@@ -280,14 +281,14 @@ const DoubleSalesCalculator = () => {
     const Section = ({ title, children }) => (
       <div className="pdf-section" style={{ backgroundColor: 'white', marginTop: 0, marginBottom: 0, paddingTop: title && BIG_TITLES.has(title) ? 10 : 0 }}>
         {title ? (
-          <Piece style={{ backgroundColor: COLORS.primary, color: 'white', padding: '10px 16px', fontSize: 14, fontWeight: 'bold' }}>{title}</Piece>
+          <Piece style={{ backgroundColor: PDF_COLORS.primary, color: 'white', padding: '10px 16px', fontSize: 14, fontWeight: 'bold' }}>{title}</Piece>
         ) : null}
         {children}
       </div>
     );
 
     const Row = ({ label, value, bold, highlight }) => (
-      <Piece style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 16px 9px', backgroundColor: highlight ? COLORS.mid : '#EBF4FF', color: highlight ? 'white' : '#333', borderBottom: '1px solid white', fontSize: 12 }}>
+      <Piece style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 16px 9px', backgroundColor: highlight ? PDF_COLORS.mid : '#EBF4FF', color: highlight ? 'white' : '#333', borderBottom: '1px solid white', fontSize: 12 }}>
         <span style={{ fontWeight: bold ? 'bold' : 'normal' }}>{label}</span>
         <span style={{ fontWeight: 'bold' }}>{value}</span>
       </Piece>
@@ -302,7 +303,7 @@ const DoubleSalesCalculator = () => {
 
     return (
       <div ref={ref} style={{ width: 794, padding: 20, backgroundColor: 'white', fontFamily: 'Arial, sans-serif', fontSize: 12, color: '#333' }}>
-        <div className="pdf-section" style={{ backgroundColor: COLORS.primary, color: 'white', padding: '25px 20px', textAlign: 'center', marginBottom: 12 }}>
+        <div className="pdf-section" style={{ backgroundColor: PDF_COLORS.primary, color: 'white', padding: '25px 20px', textAlign: 'center', marginBottom: 12 }}>
           <div style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 5 }}>DOUBLE SALES</div>
           <div style={{ fontSize: 14, opacity: 0.9 }}>Sistema de vendas</div>
         </div>
@@ -321,8 +322,8 @@ const DoubleSalesCalculator = () => {
         </Section>
 
         <Section title="CONVERSÕES DO FUNIL">
-          <Row label="Conteúdo → entrada no bot" value={(results.conv.reelsToBot * 100).toFixed(1) + '%'} />
-          <Row label="Bot → visualização do LM" value={(results.conv.botToLM * 100).toFixed(0) + '%'} />
+          <Row label="Conteúdo → entrada na automação" value={(results.conv.reelsToBot * 100).toFixed(1) + '%'} />
+          <Row label="Automação → visualização do LM" value={(results.conv.botToLM * 100).toFixed(0) + '%'} />
           <Row label="LM → compra do TW" value={(results.conv.lmToTR * 100).toFixed(1) + '%'} />
           <Row label="TW → inscrição para FL" value={(results.conv.trToApplication * 100).toFixed(0) + '%'} />
           <Row label="Inscrição → compra do FL" value={(results.conv.applicationToFL * 100).toFixed(0) + '%'} />
@@ -331,7 +332,7 @@ const DoubleSalesCalculator = () => {
 
         <Section title="RESULTADOS (por semana)">
           <Row label="Alcance" value={formatNum(results.weeklyReach)} />
-          <Row label="Entradas no bot" value={results.weeklyBotSubs.toFixed(1)} />
+          <Row label="Entradas na automação" value={results.weeklyBotSubs.toFixed(1)} />
           <Row label="Visualizações do LM" value={results.weeklyLMViews.toFixed(1)} />
           <Row label="Vendas TW" value={results.weeklyTRSales.toFixed(2)} />
           <Row label="Inscrições para FL" value={results.weeklyApps.toFixed(2)} />
@@ -382,7 +383,7 @@ const DoubleSalesCalculator = () => {
                 <Section key={idx} title={idx === 0 ? 'DESPESAS' : ''}>
                   {page.map((it, i) => {
                     if (it.type === 'sub') {
-                      return (<Piece key={`sub-${i}`} style={{ padding: '8px 16px 6px', fontWeight: 'bold', color: COLORS.primary, fontSize: 11, backgroundColor: 'white' }}>{it.text}</Piece>);
+                      return (<Piece key={`sub-${i}`} style={{ padding: '8px 16px 6px', fontWeight: 'bold', color: PDF_COLORS.primary, fontSize: 11, backgroundColor: 'white' }}>{it.text}</Piece>);
                     }
                     return (<Row key={`row-${i}`} label={it.label} value={it.value} bold={it.bold} highlight={it.highlight} />);
                   })}
@@ -402,7 +403,7 @@ const DoubleSalesCalculator = () => {
           <Row label="Faturamento anual" value={formatCur(results.scenarios.conservative.totalRev)} bold />
           <Row label="Lucro líquido" value={formatCur(results.scenarios.conservative.yearProfit)} bold />
 
-          <Piece style={{ backgroundColor: COLORS.primary, color: 'white', padding: '8px 16px', fontSize: 13, fontWeight: 'bold', marginTop: 10 }}>CENÁRIO: REALISTA</Piece>
+          <Piece style={{ backgroundColor: PDF_COLORS.primary, color: 'white', padding: '8px 16px', fontSize: 13, fontWeight: 'bold', marginTop: 10 }}>CENÁRIO: REALISTA</Piece>
           <Row label="Vendas TW/ano" value={Math.round(results.scenarios.realistic.totalTR)} />
           <Row label="Vendas FL/ano" value={results.scenarios.realistic.totalFL.toFixed(1)} />
           <Row label="Faturamento anual" value={formatCur(results.scenarios.realistic.totalRev)} bold />
@@ -415,9 +416,9 @@ const DoubleSalesCalculator = () => {
           <Row label="Lucro líquido" value={formatCur(results.scenarios.optimistic.yearProfit)} bold />
         </Section>
 
-        <div id="pdf-footer" style={{ width: '100%', marginTop: 0, paddingTop: 14, paddingBottom: 20, lineHeight: 1.25, borderTop: `2px solid ${COLORS.primary}`, textAlign: 'center', backgroundColor: 'white' }}>
+        <div id="pdf-footer" style={{ width: '100%', marginTop: 0, paddingTop: 14, paddingBottom: 20, lineHeight: 1.25, borderTop: `2px solid ${PDF_COLORS.primary}`, textAlign: 'center', backgroundColor: 'white' }}>
           <div style={{ color: '#666', fontSize: 14, marginBottom: 5 }}>Calculado com a calculadora Double Sales</div>
-          <a href="https://yuliyatsapova.com/" style={{ display: 'inline-block', color: COLORS.primary, fontSize: 14, fontWeight: 'bold', textDecoration: 'none' }}>@yuliya_tsapova | yuliyatsapova.com</a>
+          <a href="https://yuliyatsapova.com.br/" style={{ display: 'inline-block', color: PDF_COLORS.primary, fontSize: 14, fontWeight: 'bold', textDecoration: 'none' }}>@yuliya_tsapova | yuliyatsapova.com.br</a>
         </div>
       </div>
     );
@@ -425,10 +426,10 @@ const DoubleSalesCalculator = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.bg }}>
-      <header className="text-white py-6 px-4 shadow-xl" style={{ backgroundColor: COLORS.primary }}>
+      <header className="text-white py-6 px-4" style={{ backgroundColor: COLORS.bg, borderBottom: `1px solid ${COLORS.border}` }}>
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}><Rocket size={28} color="#FFFFFF" /></div>
+            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.primary, boxShadow: '0 0 24px rgba(43,114,212,0.5)' }}><Rocket size={28} color="#FFFFFF" /></div>
             <div><h1 className="text-2xl md:text-3xl font-bold">DOUBLE SALES</h1><p className="text-sm" style={{ opacity: 0.8 }}>Calculadora do sistema de vendas</p></div>
           </div>
         </div>
@@ -447,8 +448,8 @@ const DoubleSalesCalculator = () => {
 
         {activeTab === 'main' && (
           <div className="space-y-8">
-            <section className="bg-white rounded-3xl p-6 shadow-xl">
-              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.primary }}>Seus produtos</h2>
+            <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Seus produtos</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input label="Preço do tripwire" value={products.tripwirePrice} onChange={(v) => { setProducts({...products, tripwirePrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$27-197" />
                 <Input label="Preço do flagship" value={products.flagshipPrice} onChange={(v) => { setProducts({...products, flagshipPrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$497-5.000" />
@@ -457,11 +458,11 @@ const DoubleSalesCalculator = () => {
               </div>
             </section>
 
-            <section className="bg-white rounded-3xl p-6 shadow-xl">
-              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.primary }}>Conversões do funil</h2>
+            <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Conversões do funil</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Input label="Conteúdo → entrada no bot" value={conversions.reelsToBot} onChange={(v) => { setConversions({...conversions, reelsToBot: v}); resetCalc(); }} suffix="%" hint="Normal: 1-3%" />
-                <Input label="Bot → visualização do LM" value={conversions.botToLM} onChange={(v) => { setConversions({...conversions, botToLM: v}); resetCalc(); }} suffix="%" hint="Normal: 60-80%" />
+                <Input label="Conteúdo → entrada na automação" value={conversions.reelsToBot} onChange={(v) => { setConversions({...conversions, reelsToBot: v}); resetCalc(); }} suffix="%" hint="Normal: 1-3%" />
+                <Input label="Automação → visualização do LM" value={conversions.botToLM} onChange={(v) => { setConversions({...conversions, botToLM: v}); resetCalc(); }} suffix="%" hint="Normal: 60-80%" />
                 <Input label="LM → compra do TW" value={conversions.lmToTR} onChange={(v) => { setConversions({...conversions, lmToTR: v}); resetCalc(); }} suffix="%" hint="Normal: 3-7%" />
                 <Input label="TW → inscrição para FL" value={conversions.trToApplication} onChange={(v) => { setConversions({...conversions, trToApplication: v}); resetCalc(); }} suffix="%" hint="Normal: 20-40%" />
                 <Input label="Inscrição → compra do FL" value={conversions.applicationToFL} onChange={(v) => { setConversions({...conversions, applicationToFL: v}); resetCalc(); }} suffix="%" hint="Normal: 15-30%" />
@@ -469,8 +470,8 @@ const DoubleSalesCalculator = () => {
               </div>
             </section>
 
-            <section className="bg-white rounded-3xl p-6 shadow-xl">
-              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.primary }}>Seu alcance</h2>
+            <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Seu alcance</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 <Input label="Alcance médio por publicação" value={reach.avgReelsReach} onChange={(v) => { setReach({...reach, avgReelsReach: v}); resetCalc(); }} hint="Referência: veja benchmarks" />
                 <Input label="Publicações por semana" value={reach.reelsPerWeek} onChange={(v) => { setReach({...reach, reelsPerWeek: v}); resetCalc(); }} hint="Normal: 2-7" />
@@ -482,15 +483,15 @@ const DoubleSalesCalculator = () => {
 
             {calculated && results && (
               <>
-                <section className="bg-white rounded-3xl p-6 shadow-xl">
-                  <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.primary }}>Resultados</h2>
+                <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+                  <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Resultados</h2>
                   <div className="rounded-2xl p-5 mb-6" style={{ backgroundColor: COLORS.accent }}>
-                    <h3 className="font-bold mb-4" style={{ color: COLORS.primary }}>Funil por semana</h3>
+                    <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Funil por semana</h3>
                     <div className="flex flex-wrap items-center gap-2 text-sm">
-                      {[{ l: 'Alcance', v: results.weeklyReach }, { l: 'Bot', v: results.weeklyBotSubs }, { l: 'LM', v: results.weeklyLMViews }, { l: 'TW', v: results.weeklyTRSales }, { l: 'Inscrições', v: results.weeklyApps }, { l: 'FL', v: results.weeklyFLSales, hl: true }].map((item, idx) => (
+                      {[{ l: 'Alcance', v: results.weeklyReach }, { l: 'Automação', v: results.weeklyBotSubs }, { l: 'LM', v: results.weeklyLMViews }, { l: 'TW', v: results.weeklyTRSales }, { l: 'Inscrições', v: results.weeklyApps }, { l: 'FL', v: results.weeklyFLSales, hl: true }].map((item, idx) => (
                         <React.Fragment key={idx}>
-                          {idx > 0 && <ChevronRight size={16} style={{ color: COLORS.primary, opacity: 0.7 }} />}
-                          <div className="px-3 py-2 rounded-lg" style={{ backgroundColor: item.hl ? COLORS.primary : 'white', color: item.hl ? 'white' : COLORS.primary }}>
+                          {idx > 0 && <ChevronRight size={16} style={{ color: COLORS.accentLt, opacity: 0.8 }} />}
+                          <div className="px-3 py-2 rounded-lg" style={{ backgroundColor: item.hl ? COLORS.primary : COLORS.surfaceHover, color: 'white' }}>
                             <span style={{ opacity: 0.7 }}>{item.l}</span><span className="ml-2 font-bold">{formatNum(item.v)}</span>
                           </div>
                         </React.Fragment>
@@ -505,8 +506,8 @@ const DoubleSalesCalculator = () => {
                   </div>
                 </section>
 
-                <section className="bg-white rounded-3xl p-6 shadow-xl">
-                  <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.primary }}>Quanto precisa para suas metas?</h2>
+                <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+                  <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Quanto precisa para suas metas?</h2>
                   <div className="space-y-4">
                     <RoadmapRow goal="Primeira venda TW" reachN={results.reachFirstTR} note="Mínimo para o primeiro resultado" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
                     <RoadmapRow goal="Primeira venda FL" reachN={results.reachFirstFL} note="Se as vendas vierem sem lançamento" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
@@ -526,25 +527,25 @@ const DoubleSalesCalculator = () => {
 
         {activeTab === 'expenses' && (
           <div className="space-y-8">
-            <section className="bg-white rounded-3xl p-6 shadow-xl">
+            <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
               <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                <h2 className="text-xl font-bold" style={{ color: COLORS.primary }}>Fixas/mês</h2>
+                <h2 className="text-xl font-bold" style={{ color: COLORS.textH }}>Fixas/mês</h2>
                 <button onClick={() => { setFixedExpenses([...fixedExpenses, { id: Date.now(), name: 'Nova despesa', amount: '0', hint: '' }]); resetCalc(); }} className="flex items-center gap-2 px-4 py-2 text-white rounded-xl" style={{ backgroundColor: COLORS.primary }}><Plus size={18} />Adicionar</button>
               </div>
               <div className="space-y-3">{fixedExpenses.map(e => <ExpenseRow key={e.id} expense={e} onUpdate={(id, f, v) => { setFixedExpenses(fixedExpenses.map(x => x.id === id ? {...x, [f]: v} : x)); resetCalc(); }} onRemove={(id) => { if(fixedExpenses.length > 1) setFixedExpenses(fixedExpenses.filter(x => x.id !== id)); resetCalc(); }} />)}</div>
             </section>
 
-            <section className="bg-white rounded-3xl p-6 shadow-xl">
+            <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
               <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                <h2 className="text-xl font-bold" style={{ color: COLORS.primary }}>Variáveis (%)</h2>
+                <h2 className="text-xl font-bold" style={{ color: COLORS.textH }}>Variáveis (%)</h2>
                 <button onClick={() => { setVariableExpenses([...variableExpenses, { id: Date.now(), name: 'Nova %', percent: '0', hint: '' }]); resetCalc(); }} className="flex items-center gap-2 px-4 py-2 text-white rounded-xl" style={{ backgroundColor: COLORS.primary }}><Plus size={18} />Adicionar</button>
               </div>
               <div className="space-y-3">{variableExpenses.map(e => <ExpenseRow key={e.id} expense={e} isVar onUpdate={(id, f, v) => { setVariableExpenses(variableExpenses.map(x => x.id === id ? {...x, [f]: v} : x)); resetCalc(); }} onRemove={(id) => { if(variableExpenses.length > 1) setVariableExpenses(variableExpenses.filter(x => x.id !== id)); resetCalc(); }} />)}</div>
             </section>
 
-            <section className="bg-white rounded-3xl p-6 shadow-xl">
+            <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
               <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                <h2 className="text-xl font-bold" style={{ color: COLORS.primary }}>Iniciais</h2>
+                <h2 className="text-xl font-bold" style={{ color: COLORS.textH }}>Iniciais</h2>
                 <button onClick={() => { setStartupExpenses([...startupExpenses, { id: Date.now(), name: 'Nova despesa', amount: '0', hint: '' }]); resetCalc(); }} className="flex items-center gap-2 px-4 py-2 text-white rounded-xl" style={{ backgroundColor: COLORS.primary }}><Plus size={18} />Adicionar</button>
               </div>
               <div className="space-y-3">{startupExpenses.map(e => <ExpenseRow key={e.id} expense={e} onUpdate={(id, f, v) => { setStartupExpenses(startupExpenses.map(x => x.id === id ? {...x, [f]: v} : x)); resetCalc(); }} onRemove={(id) => { if(startupExpenses.length > 1) setStartupExpenses(startupExpenses.filter(x => x.id !== id)); resetCalc(); }} />)}</div>
@@ -570,25 +571,25 @@ const DoubleSalesCalculator = () => {
           <div className="space-y-8">
             {calculated && results ? (
               <>
-                <div className="p-4 rounded-xl" style={{ backgroundColor: 'white' }}>
-                  <p className="text-sm" style={{ color: COLORS.primary }}><strong>Crescimento:</strong> alcance +{results.r.monthlyGrowth}%/mês. Início: {formatNum(results.monthlyReachBase)} → ano: {formatNum(results.monthlyReachBase * Math.pow(1 + results.r.monthlyGrowth/100, 11))}</p>
+                <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+                  <p className="text-sm" style={{ color: COLORS.textBody }}><strong>Crescimento:</strong> alcance +{results.r.monthlyGrowth}%/mês. Início: {formatNum(results.monthlyReachBase)} → ano: {formatNum(results.monthlyReachBase * Math.pow(1 + results.r.monthlyGrowth/100, 11))}</p>
                 </div>
                 {[{ name: 'Cenário: Conservador', key: 'conservative', color: '#F97316' }, { name: 'Cenário: Realista', key: 'realistic', color: COLORS.primary }, { name: 'Cenário: Otimista', key: 'optimistic', color: '#22C55E' }].map((sc) => {
                   const data = results.scenarios[sc.key];
                   return (
-                    <section key={sc.key} className="bg-white rounded-3xl shadow-xl overflow-hidden">
+                    <section key={sc.key} className="rounded-3xl shadow-xl overflow-hidden" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
                       <div className="px-6 py-4 text-white" style={{ backgroundColor: sc.color }}><h2 className="text-xl font-bold">{sc.name}</h2></div>
                       <div className="p-6">
                         <div className="grid sm:grid-cols-4 gap-4 mb-6">
-                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.primary, opacity: 0.7 }}>TW/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.primary }}>{formatNum(data.totalTR)}</p></div>
-                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.primary, opacity: 0.7 }}>FL/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.primary }}>{data.totalFL.toFixed(1)}</p></div>
-                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.primary, opacity: 0.7 }}>Faturamento</p><p className="text-2xl font-bold" style={{ color: COLORS.primary }}>{formatCur(data.totalRev)}</p></div>
+                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>TW/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{formatNum(data.totalTR)}</p></div>
+                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>FL/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{data.totalFL.toFixed(1)}</p></div>
+                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>Faturamento</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{formatCur(data.totalRev)}</p></div>
                           <div className="text-center p-4 rounded-xl text-white" style={{ backgroundColor: sc.color }}><p className="text-sm" style={{ opacity: 0.9 }}>Líquido</p><p className="text-2xl font-bold">{formatCur(data.yearProfit)}</p></div>
                         </div>
                         <div className="overflow-x-auto">
-                          <table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.accent }}><th className="px-3 py-2 text-left" style={{ color: COLORS.primary, opacity: 0.7 }}>M</th><th className="px-3 py-2 text-right" style={{ color: COLORS.primary, opacity: 0.7 }}>Alcance</th><th className="px-3 py-2 text-right" style={{ color: COLORS.primary, opacity: 0.7 }}>Bot</th><th className="px-3 py-2 text-right" style={{ color: COLORS.primary, opacity: 0.7 }}>TW</th><th className="px-3 py-2 text-right" style={{ color: COLORS.primary, opacity: 0.7 }}>Inscrições</th><th className="px-3 py-2 text-right" style={{ color: COLORS.primary, opacity: 0.7 }}>FL</th><th className="px-3 py-2 text-right" style={{ color: COLORS.primary, opacity: 0.7 }}>Faturamento</th></tr></thead>
+                          <table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.accent }}><th className="px-3 py-2 text-left" style={{ color: COLORS.textSecondary }}>M</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Alcance</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Autom.</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>TW</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Inscrições</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>FL</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Faturamento</th></tr></thead>
                             <tbody>
-                              {data.months.map((row) => (<tr key={row.m} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-3 py-2" style={{ color: COLORS.primary }}>{row.m}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.primary }}>{formatNum(row.reach)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.primary }}>{formatNum(row.bot)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.primary }}>{row.tr.toFixed(1)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.primary }}>{row.apps.toFixed(1)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.primary }}>{row.fl.toFixed(2)}</td><td className="px-3 py-2 text-right font-bold" style={{ color: COLORS.primary }}>{formatCur(row.rev)}</td></tr>))}
+                              {data.months.map((row) => (<tr key={row.m} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-3 py-2" style={{ color: COLORS.textBody }}>{row.m}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{formatNum(row.reach)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{formatNum(row.bot)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.tr.toFixed(1)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.apps.toFixed(1)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.fl.toFixed(2)}</td><td className="px-3 py-2 text-right font-bold" style={{ color: COLORS.textBody }}>{formatCur(row.rev)}</td></tr>))}
                               <tr style={{ backgroundColor: sc.color, color: 'white' }}><td className="px-3 py-2 font-bold">ANO</td><td></td><td></td><td className="px-3 py-2 text-right font-bold">{formatNum(data.totalTR)}</td><td></td><td className="px-3 py-2 text-right font-bold">{data.totalFL.toFixed(1)}</td><td className="px-3 py-2 text-right font-bold">{formatCur(data.totalRev)}</td></tr>
                             </tbody>
                           </table>
@@ -599,8 +600,8 @@ const DoubleSalesCalculator = () => {
                 })}
               </>
             ) : (
-              <div className="bg-white rounded-3xl p-12 shadow-xl text-center">
-                <p className="text-xl mb-6" style={{ color: COLORS.primary }}>Preencha os dados na aba "Principal" e clique em "Calcular"</p>
+              <div className="rounded-3xl p-12 shadow-xl text-center" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+                <p className="text-xl mb-6" style={{ color: COLORS.textH }}>Preencha os dados na aba "Principal" e clique em "Calcular"</p>
                 <button onClick={() => setActiveTab('main')} className="px-6 py-3 rounded-xl text-white font-bold" style={{ backgroundColor: COLORS.primary }}>Ir para Principal</button>
               </div>
             )}
@@ -609,32 +610,32 @@ const DoubleSalesCalculator = () => {
 
         {activeTab === 'useful' && (
           <div className="space-y-8">
-            <section className="bg-white rounded-3xl p-6 shadow-xl">
-              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.primary }}>Benchmarks</h2>
+            <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Benchmarks</h2>
               <div className="space-y-8">
                 <div>
-                  <h3 className="font-bold mb-4" style={{ color: COLORS.primary }}>Conversões</h3>
+                  <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Conversões</h3>
                   <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.primary, color: 'white' }}><th className="px-4 py-3 text-left">Etapa</th><th className="px-4 py-3 text-center">Fraco</th><th className="px-4 py-3 text-center">Normal</th><th className="px-4 py-3 text-center">Excelente</th></tr></thead>
-                    <tbody>{[{ s: 'Conteúdo → bot', l: '< 1%', n: '1-2%', h: '> 3%' }, { s: 'Bot → LM', l: '< 50%', n: '60-70%', h: '> 80%' }, { s: 'LM → TW', l: '< 2%', n: '3-5%', h: '> 7%' }, { s: 'TW → inscrição', l: '< 15%', n: '20-30%', h: '> 40%' }, { s: 'Inscrição → FL', l: '< 10%', n: '15-25%', h: '> 30%' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.primary }}>{r.s}</td><td className="px-4 py-3 text-center" style={{ color: '#DC2626' }}>{r.l}</td><td className="px-4 py-3 text-center" style={{ color: '#D97706' }}>{r.n}</td><td className="px-4 py-3 text-center" style={{ color: '#059669' }}>{r.h}</td></tr>))}</tbody>
+                    <tbody>{[{ s: 'Conteúdo → automação', l: '< 1%', n: '1-2%', h: '> 3%' }, { s: 'Automação → LM', l: '< 50%', n: '60-70%', h: '> 80%' }, { s: 'LM → TW', l: '< 2%', n: '3-5%', h: '> 7%' }, { s: 'TW → inscrição', l: '< 15%', n: '20-30%', h: '> 40%' }, { s: 'Inscrição → FL', l: '< 10%', n: '15-25%', h: '> 30%' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.textBody }}>{r.s}</td><td className="px-4 py-3 text-center" style={{ color: '#F87171' }}>{r.l}</td><td className="px-4 py-3 text-center" style={{ color: '#FBBF24' }}>{r.n}</td><td className="px-4 py-3 text-center" style={{ color: '#4ADE80' }}>{r.h}</td></tr>))}</tbody>
                   </table></div>
                 </div>
                 <div>
-                  <h3 className="font-bold mb-4" style={{ color: COLORS.primary }}>Preços</h3>
+                  <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Preços</h3>
                   <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.primary, color: 'white' }}><th className="px-4 py-3 text-left">Produto</th><th className="px-4 py-3 text-center">Iniciante</th><th className="px-4 py-3 text-center">Intermediário</th><th className="px-4 py-3 text-center">Expert</th></tr></thead>
-                    <tbody>{[{ p: 'Tripwire (TW)', n: 'R$27-97', m: 'R$97-297', e: 'R$297-997' }, { p: 'Flagship (FL)', n: 'R$497-1.500', m: 'R$1.500-5.000', e: 'R$5.000-15.000' }, { p: 'Premium', n: 'R$2.000-7.500', m: 'R$7.500-20.000', e: 'R$20.000-50.000' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.primary }}>{r.p}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.primary }}>{r.n}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.primary }}>{r.m}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.primary }}>{r.e}</td></tr>))}</tbody>
+                    <tbody>{[{ p: 'Tripwire (TW)', n: 'R$27-97', m: 'R$97-297', e: 'R$297-997' }, { p: 'Flagship (FL)', n: 'R$497-1.500', m: 'R$1.500-5.000', e: 'R$5.000-15.000' }, { p: 'Premium', n: 'R$2.000-7.500', m: 'R$7.500-20.000', e: 'R$20.000-50.000' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.textBody }}>{r.p}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.n}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.m}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.e}</td></tr>))}</tbody>
                   </table></div>
                 </div>
                 <div>
-                  <h3 className="font-bold mb-4" style={{ color: COLORS.primary }}>Alcance de publicações</h3>
+                  <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Alcance de publicações</h3>
                   <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.primary, color: 'white' }}><th className="px-4 py-3 text-left">Conta</th><th className="px-4 py-3 text-center">Mediana</th><th className="px-4 py-3 text-center">Bom</th><th className="px-4 py-3 text-center">Viral</th></tr></thead>
-                    <tbody>{[{ s: '< 1K', m: '200-500', g: '1K+', v: '5K+' }, { s: '1-5K', m: '500-1,5K', g: '3K+', v: '10K+' }, { s: '5-20K', m: '1,5-5K', g: '10K+', v: '50K+' }, { s: '20-100K', m: '5-20K', g: '30K+', v: '100K+' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.primary }}>{r.s}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.primary }}>{r.m}</td><td className="px-4 py-3 text-center" style={{ color: '#059669' }}>{r.g}</td><td className="px-4 py-3 text-center" style={{ color: '#5B9EE8' }}>{r.v}</td></tr>))}</tbody>
+                    <tbody>{[{ s: '< 1K', m: '200-500', g: '1K+', v: '5K+' }, { s: '1-5K', m: '500-1,5K', g: '3K+', v: '10K+' }, { s: '5-20K', m: '1,5-5K', g: '10K+', v: '50K+' }, { s: '20-100K', m: '5-20K', g: '30K+', v: '100K+' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.textBody }}>{r.s}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.m}</td><td className="px-4 py-3 text-center" style={{ color: '#4ADE80' }}>{r.g}</td><td className="px-4 py-3 text-center" style={{ color: '#5B9EE8' }}>{r.v}</td></tr>))}</tbody>
                   </table></div>
                 </div>
               </div>
             </section>
 
-            <section className="bg-white rounded-3xl p-6 shadow-xl">
-              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.primary }}>Plano de lançamento (12 semanas)</h2>
+            <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Plano de lançamento (12 semanas)</h2>
               <div className="space-y-3">
                 {[
                   { w: '1', f: 'Estratégia', t: 'Linha de produtos + funil' },
@@ -646,7 +647,7 @@ const DoubleSalesCalculator = () => {
                   { w: '9-10', f: 'Pré-lançamento', t: 'Aquecimento + preparação do FL e janela de vendas' },
                   { w: '11-12', f: 'LANÇAMENTO!', t: 'Vendas do flagship (produto principal)', hl: true }
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: item.hl ? COLORS.primary : COLORS.accent, color: item.hl ? 'white' : COLORS.primary }}>
+                  <div key={idx} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: item.hl ? COLORS.primary : COLORS.accent, color: 'white' }}>
                     <div className="w-16 text-center py-2 rounded-lg font-bold text-sm text-white" style={{ backgroundColor: item.hl ? 'rgba(255,255,255,0.2)' : COLORS.primary }}>{item.w}</div>
                     <div className="flex-1"><p className="font-bold">{item.f}</p><p className="text-sm" style={{ opacity: 0.8 }}>{item.t}</p></div>
                   </div>
@@ -678,7 +679,7 @@ const DoubleSalesCalculator = () => {
         )}
       </main>
 
-      <footer className="py-6 px-4 mt-12 text-white" style={{ backgroundColor: COLORS.primary }}>
+      <footer className="py-6 px-4 mt-12 text-white" style={{ backgroundColor: COLORS.bg, borderTop: `1px solid ${COLORS.border}` }}>
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-2xl font-bold">DOUBLE SALES</p>
           <p className="text-sm mt-2" style={{ opacity: 0.6 }}>@yuliya_tsapova</p>
