@@ -310,9 +310,9 @@ const DoubleSalesCalculator = () => {
 
         <Section title="PRODUTOS">
           <Row label="Preço do tripwire" value={formatCur(results.p.tripwirePrice)} />
-          <Row label="Preço do flagship" value={formatCur(results.p.flagshipPrice)} />
+          <Row label="Preço do produto principal" value={formatCur(results.p.flagshipPrice)} />
           {showUpsell && <Row label="Upsell" value={formatCur(results.p.upsellPrice)} />}
-          {showMaxSales && <Row label="Vagas FL/mês" value={results.p.maxFlagshipSales} />}
+          {showMaxSales && <Row label="Vagas do PP/mês" value={results.p.maxFlagshipSales} />}
         </Section>
 
         <Section title="ALCANCE">
@@ -325,8 +325,8 @@ const DoubleSalesCalculator = () => {
           <Row label="Conteúdo → entrada na automação" value={(results.conv.reelsToBot * 100).toFixed(1) + '%'} />
           <Row label="Automação → visualização do LM" value={(results.conv.botToLM * 100).toFixed(0) + '%'} />
           <Row label="LM → compra do TW" value={(results.conv.lmToTR * 100).toFixed(1) + '%'} />
-          <Row label="TW → inscrição para FL" value={(results.conv.trToApplication * 100).toFixed(0) + '%'} />
-          <Row label="Inscrição → compra do FL" value={(results.conv.applicationToFL * 100).toFixed(0) + '%'} />
+          <Row label="TW → inscrição para o PP" value={(results.conv.trToApplication * 100).toFixed(0) + '%'} />
+          <Row label="Inscrição → compra do PP" value={(results.conv.applicationToFL * 100).toFixed(0) + '%'} />
           {results.conv.lmToApplicationDirect > 0 && <Row label="LM/Conteúdo → inscrição direta" value={(results.conv.lmToApplicationDirect * 100).toFixed(1) + '%'} />}
         </Section>
 
@@ -335,8 +335,8 @@ const DoubleSalesCalculator = () => {
           <Row label="Entradas na automação" value={results.weeklyBotSubs.toFixed(1)} />
           <Row label="Visualizações do LM" value={results.weeklyLMViews.toFixed(1)} />
           <Row label="Vendas TW" value={results.weeklyTRSales.toFixed(2)} />
-          <Row label="Inscrições para FL" value={results.weeklyApps.toFixed(2)} />
-          <Row label="Vendas FL" value={results.weeklyFLSales.toFixed(3)} />
+          <Row label="Inscrições para o PP" value={results.weeklyApps.toFixed(2)} />
+          <Row label="Vendas do PP" value={results.weeklyFLSales.toFixed(3)} />
           <Row label="Faturamento por semana" value={formatCur(results.weeklyRevTotal)} bold highlight />
           <Row label="Faturamento por mês" value={formatCur(results.monthlyRev)} bold highlight />
           <Row label="Lucro por mês" value={formatCur(results.monthlyProfit)} bold highlight />
@@ -345,8 +345,8 @@ const DoubleSalesCalculator = () => {
         <Section title="QUANTO PRECISA PARA SUAS METAS">
           {[
             { name: 'Primeira venda TW', reach: results.reachFirstTR },
-            { name: 'Primeira venda FL', reach: results.reachFirstFL },
-            { name: '30 inscrições para FL', reach: results.reach30Apps },
+            { name: 'Primeira venda do PP', reach: results.reachFirstFL },
+            { name: '30 inscrições para o PP', reach: results.reach30Apps },
             { name: 'R$ 10.000', reach: results.reach10k },
             { name: 'R$ 100.000 (6em7)', reach: results.reach100k },
           ].map((g, i) => {
@@ -399,19 +399,19 @@ const DoubleSalesCalculator = () => {
         <Section title="FATURAMENTO">
           <Piece style={{ backgroundColor: '#F97316', color: 'white', padding: '8px 16px', fontSize: 13, fontWeight: 'bold', marginTop: 10 }}>CENÁRIO: CONSERVADOR</Piece>
           <Row label="Vendas TW/ano" value={Math.round(results.scenarios.conservative.totalTR)} />
-          <Row label="Vendas FL/ano" value={results.scenarios.conservative.totalFL.toFixed(1)} />
+          <Row label="Vendas do PP/ano" value={results.scenarios.conservative.totalFL.toFixed(1)} />
           <Row label="Faturamento anual" value={formatCur(results.scenarios.conservative.totalRev)} bold />
           <Row label="Lucro líquido" value={formatCur(results.scenarios.conservative.yearProfit)} bold />
 
           <Piece style={{ backgroundColor: PDF_COLORS.primary, color: 'white', padding: '8px 16px', fontSize: 13, fontWeight: 'bold', marginTop: 10 }}>CENÁRIO: REALISTA</Piece>
           <Row label="Vendas TW/ano" value={Math.round(results.scenarios.realistic.totalTR)} />
-          <Row label="Vendas FL/ano" value={results.scenarios.realistic.totalFL.toFixed(1)} />
+          <Row label="Vendas do PP/ano" value={results.scenarios.realistic.totalFL.toFixed(1)} />
           <Row label="Faturamento anual" value={formatCur(results.scenarios.realistic.totalRev)} bold />
           <Row label="Lucro líquido" value={formatCur(results.scenarios.realistic.yearProfit)} bold />
 
           <Piece style={{ backgroundColor: '#22C55E', color: 'white', padding: '8px 16px', fontSize: 13, fontWeight: 'bold', marginTop: 10 }}>CENÁRIO: OTIMISTA</Piece>
           <Row label="Vendas TW/ano" value={Math.round(results.scenarios.optimistic.totalTR)} />
-          <Row label="Vendas FL/ano" value={results.scenarios.optimistic.totalFL.toFixed(1)} />
+          <Row label="Vendas do PP/ano" value={results.scenarios.optimistic.totalFL.toFixed(1)} />
           <Row label="Faturamento anual" value={formatCur(results.scenarios.optimistic.totalRev)} bold />
           <Row label="Lucro líquido" value={formatCur(results.scenarios.optimistic.yearProfit)} bold />
         </Section>
@@ -452,9 +452,9 @@ const DoubleSalesCalculator = () => {
               <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Seus produtos</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input label="Preço do tripwire" value={products.tripwirePrice} onChange={(v) => { setProducts({...products, tripwirePrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$27-197" />
-                <Input label="Preço do flagship" value={products.flagshipPrice} onChange={(v) => { setProducts({...products, flagshipPrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$497-5.000" />
+                <Input label="Preço do produto principal" value={products.flagshipPrice} onChange={(v) => { setProducts({...products, flagshipPrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$497-5.000" />
                 <Input label="Upsell" value={products.upsellPrice} onChange={(v) => { setProducts({...products, upsellPrice: v}); resetCalc(); }} suffix="R$" hint="Opcional" />
-                <Input label="Vagas FL/mês" value={products.maxFlagshipSales} onChange={(v) => { setProducts({...products, maxFlagshipSales: v}); resetCalc(); }} hint="999 = sem limite" />
+                <Input label="Vagas do PP/mês" value={products.maxFlagshipSales} onChange={(v) => { setProducts({...products, maxFlagshipSales: v}); resetCalc(); }} hint="999 = sem limite" />
               </div>
             </section>
 
@@ -464,8 +464,8 @@ const DoubleSalesCalculator = () => {
                 <Input label="Conteúdo → entrada na automação" value={conversions.reelsToBot} onChange={(v) => { setConversions({...conversions, reelsToBot: v}); resetCalc(); }} suffix="%" hint="Normal: 1-3%" />
                 <Input label="Automação → visualização do LM" value={conversions.botToLM} onChange={(v) => { setConversions({...conversions, botToLM: v}); resetCalc(); }} suffix="%" hint="Normal: 60-80%" />
                 <Input label="LM → compra do TW" value={conversions.lmToTR} onChange={(v) => { setConversions({...conversions, lmToTR: v}); resetCalc(); }} suffix="%" hint="Normal: 3-7%" />
-                <Input label="TW → inscrição para FL" value={conversions.trToApplication} onChange={(v) => { setConversions({...conversions, trToApplication: v}); resetCalc(); }} suffix="%" hint="Normal: 20-40%" />
-                <Input label="Inscrição → compra do FL" value={conversions.applicationToFL} onChange={(v) => { setConversions({...conversions, applicationToFL: v}); resetCalc(); }} suffix="%" hint="Normal: 15-30%" />
+                <Input label="TW → inscrição para o PP" value={conversions.trToApplication} onChange={(v) => { setConversions({...conversions, trToApplication: v}); resetCalc(); }} suffix="%" hint="Normal: 20-40%" />
+                <Input label="Inscrição → compra do PP" value={conversions.applicationToFL} onChange={(v) => { setConversions({...conversions, applicationToFL: v}); resetCalc(); }} suffix="%" hint="Normal: 15-30%" />
                 <Input label="LM/Conteúdo → inscrição direta" value={conversions.lmToApplicationDirect} onChange={(v) => { setConversions({...conversions, lmToApplicationDirect: v}); resetCalc(); }} suffix="%" hint="0, se somente via TW" />
               </div>
             </section>
@@ -488,7 +488,7 @@ const DoubleSalesCalculator = () => {
                   <div className="rounded-2xl p-5 mb-6" style={{ backgroundColor: COLORS.accent }}>
                     <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Funil por semana</h3>
                     <div className="flex flex-wrap items-center gap-2 text-sm">
-                      {[{ l: 'Alcance', v: results.weeklyReach }, { l: 'Automação', v: results.weeklyBotSubs }, { l: 'LM', v: results.weeklyLMViews }, { l: 'TW', v: results.weeklyTRSales }, { l: 'Inscrições', v: results.weeklyApps }, { l: 'FL', v: results.weeklyFLSales, hl: true }].map((item, idx) => (
+                      {[{ l: 'Alcance', v: results.weeklyReach }, { l: 'Automação', v: results.weeklyBotSubs }, { l: 'LM', v: results.weeklyLMViews }, { l: 'TW', v: results.weeklyTRSales }, { l: 'Inscrições', v: results.weeklyApps }, { l: 'PP', v: results.weeklyFLSales, hl: true }].map((item, idx) => (
                         <React.Fragment key={idx}>
                           {idx > 0 && <ChevronRight size={16} style={{ color: COLORS.accentLt, opacity: 0.8 }} />}
                           <div className="px-3 py-2 rounded-lg" style={{ backgroundColor: item.hl ? COLORS.primary : COLORS.surfaceHover, color: 'white' }}>
@@ -510,8 +510,8 @@ const DoubleSalesCalculator = () => {
                   <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Quanto precisa para suas metas?</h2>
                   <div className="space-y-4">
                     <RoadmapRow goal="Primeira venda TW" reachN={results.reachFirstTR} note="Mínimo para o primeiro resultado" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
-                    <RoadmapRow goal="Primeira venda FL" reachN={results.reachFirstFL} note="Se as vendas vierem sem lançamento" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
-                    <RoadmapRow goal="30 inscrições para FL" reachN={results.reach30Apps} note="Mínimo para lançamento" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
+                    <RoadmapRow goal="Primeira venda do PP" reachN={results.reachFirstFL} note="Se as vendas vierem sem lançamento" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
+                    <RoadmapRow goal="30 inscrições para o PP" reachN={results.reach30Apps} note="Mínimo para lançamento" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
                     <RoadmapRow goal="R$ 10.000" reachN={results.reach10k} note="Primeira meta — você chegou!" hl avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
                     <RoadmapRow goal="R$ 100.000 (6em7)" reachN={results.reach100k} note="Seis dígitos — é real!" hl avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
                   </div>
@@ -582,12 +582,12 @@ const DoubleSalesCalculator = () => {
                       <div className="p-6">
                         <div className="grid sm:grid-cols-4 gap-4 mb-6">
                           <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>TW/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{formatNum(data.totalTR)}</p></div>
-                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>FL/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{data.totalFL.toFixed(1)}</p></div>
+                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>PP/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{data.totalFL.toFixed(1)}</p></div>
                           <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>Faturamento</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{formatCur(data.totalRev)}</p></div>
                           <div className="text-center p-4 rounded-xl text-white" style={{ backgroundColor: sc.color }}><p className="text-sm" style={{ opacity: 0.9 }}>Líquido</p><p className="text-2xl font-bold">{formatCur(data.yearProfit)}</p></div>
                         </div>
                         <div className="overflow-x-auto">
-                          <table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.accent }}><th className="px-3 py-2 text-left" style={{ color: COLORS.textSecondary }}>M</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Alcance</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Autom.</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>TW</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Inscrições</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>FL</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Faturamento</th></tr></thead>
+                          <table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.accent }}><th className="px-3 py-2 text-left" style={{ color: COLORS.textSecondary }}>M</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Alcance</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Autom.</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>TW</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Inscrições</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>PP</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Faturamento</th></tr></thead>
                             <tbody>
                               {data.months.map((row) => (<tr key={row.m} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-3 py-2" style={{ color: COLORS.textBody }}>{row.m}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{formatNum(row.reach)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{formatNum(row.bot)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.tr.toFixed(1)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.apps.toFixed(1)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.fl.toFixed(2)}</td><td className="px-3 py-2 text-right font-bold" style={{ color: COLORS.textBody }}>{formatCur(row.rev)}</td></tr>))}
                               <tr style={{ backgroundColor: sc.color, color: 'white' }}><td className="px-3 py-2 font-bold">ANO</td><td></td><td></td><td className="px-3 py-2 text-right font-bold">{formatNum(data.totalTR)}</td><td></td><td className="px-3 py-2 text-right font-bold">{data.totalFL.toFixed(1)}</td><td className="px-3 py-2 text-right font-bold">{formatCur(data.totalRev)}</td></tr>
@@ -616,13 +616,13 @@ const DoubleSalesCalculator = () => {
                 <div>
                   <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Conversões</h3>
                   <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.primary, color: 'white' }}><th className="px-4 py-3 text-left">Etapa</th><th className="px-4 py-3 text-center">Fraco</th><th className="px-4 py-3 text-center">Normal</th><th className="px-4 py-3 text-center">Excelente</th></tr></thead>
-                    <tbody>{[{ s: 'Conteúdo → automação', l: '< 1%', n: '1-2%', h: '> 3%' }, { s: 'Automação → LM', l: '< 50%', n: '60-70%', h: '> 80%' }, { s: 'LM → TW', l: '< 2%', n: '3-5%', h: '> 7%' }, { s: 'TW → inscrição', l: '< 15%', n: '20-30%', h: '> 40%' }, { s: 'Inscrição → FL', l: '< 10%', n: '15-25%', h: '> 30%' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.textBody }}>{r.s}</td><td className="px-4 py-3 text-center" style={{ color: '#F87171' }}>{r.l}</td><td className="px-4 py-3 text-center" style={{ color: '#FBBF24' }}>{r.n}</td><td className="px-4 py-3 text-center" style={{ color: '#4ADE80' }}>{r.h}</td></tr>))}</tbody>
+                    <tbody>{[{ s: 'Conteúdo → automação', l: '< 1%', n: '1-2%', h: '> 3%' }, { s: 'Automação → LM', l: '< 50%', n: '60-70%', h: '> 80%' }, { s: 'LM → TW', l: '< 2%', n: '3-5%', h: '> 7%' }, { s: 'TW → inscrição', l: '< 15%', n: '20-30%', h: '> 40%' }, { s: 'Inscrição → PP', l: '< 10%', n: '15-25%', h: '> 30%' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.textBody }}>{r.s}</td><td className="px-4 py-3 text-center" style={{ color: '#F87171' }}>{r.l}</td><td className="px-4 py-3 text-center" style={{ color: '#FBBF24' }}>{r.n}</td><td className="px-4 py-3 text-center" style={{ color: '#4ADE80' }}>{r.h}</td></tr>))}</tbody>
                   </table></div>
                 </div>
                 <div>
                   <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Preços</h3>
                   <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.primary, color: 'white' }}><th className="px-4 py-3 text-left">Produto</th><th className="px-4 py-3 text-center">Iniciante</th><th className="px-4 py-3 text-center">Intermediário</th><th className="px-4 py-3 text-center">Expert</th></tr></thead>
-                    <tbody>{[{ p: 'Tripwire (TW)', n: 'R$27-97', m: 'R$97-297', e: 'R$297-997' }, { p: 'Flagship (FL)', n: 'R$497-1.500', m: 'R$1.500-5.000', e: 'R$5.000-15.000' }, { p: 'Premium', n: 'R$2.000-7.500', m: 'R$7.500-20.000', e: 'R$20.000-50.000' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.textBody }}>{r.p}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.n}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.m}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.e}</td></tr>))}</tbody>
+                    <tbody>{[{ p: 'Tripwire (TW)', n: 'R$27-97', m: 'R$97-297', e: 'R$297-997' }, { p: 'Produto principal (PP)', n: 'R$497-1.500', m: 'R$1.500-5.000', e: 'R$5.000-15.000' }, { p: 'Premium', n: 'R$2.000-7.500', m: 'R$7.500-20.000', e: 'R$20.000-50.000' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.textBody }}>{r.p}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.n}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.m}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.e}</td></tr>))}</tbody>
                   </table></div>
                 </div>
                 <div>
@@ -644,8 +644,8 @@ const DoubleSalesCalculator = () => {
                   { w: '4', f: 'Parte técnica', t: 'Plataforma, automação WhatsApp, pagamento' },
                   { w: '5-6', f: 'Conteúdo', t: 'Atrair pessoas para o funil' },
                   { w: '7-8', f: 'Inscrições', t: 'Coletar 20-30 inscrições' },
-                  { w: '9-10', f: 'Pré-lançamento', t: 'Aquecimento + preparação do FL e janela de vendas' },
-                  { w: '11-12', f: 'LANÇAMENTO!', t: 'Vendas do flagship (produto principal)', hl: true }
+                  { w: '9-10', f: 'Pré-lançamento', t: 'Aquecimento + preparação do PP e janela de vendas' },
+                  { w: '11-12', f: 'LANÇAMENTO!', t: 'Vendas do produto principal (carro-chefe)', hl: true }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: item.hl ? COLORS.primary : COLORS.accent, color: 'white' }}>
                     <div className="w-16 text-center py-2 rounded-lg font-bold text-sm text-white" style={{ backgroundColor: item.hl ? 'rgba(255,255,255,0.2)' : COLORS.primary }}>{item.w}</div>
