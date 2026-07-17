@@ -1,8 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Calculator, TrendingUp, DollarSign, Target, ChevronRight, Sparkles, PiggyBank, Rocket, Lightbulb, Play, Download } from 'lucide-react';
+import { Plus, Trash2, Calculator, TrendingUp, DollarSign, Target, ChevronRight, Sparkles, PiggyBank, Lightbulb, Play, Download } from 'lucide-react';
 
 const COLORS = { primary: '#2B72D4', mid: '#1A56B0', accent: 'rgba(43,114,212,0.14)', accentLt: '#5B9EE8', surface: '#0D1526', surfaceHover: '#16223D', border: 'rgba(255,255,255,0.14)', textH: '#FFFFFF', textBody: 'rgba(255,255,255,0.85)', textSecondary: 'rgba(255,255,255,0.55)', positive: '#22C55E', bg: '#060810' };
-const PDF_COLORS = { primary: '#2B72D4', mid: '#1A56B0' }; // PDF остаётся светлым (печать)
+// PDF светлый (печать), палитра = PDF-материалы DSE (template-funil-PDF: navy + приглушённые статусные)
+const PDF_COLORS = { navy: '#1C2E5E', accent: '#2B72D4', accentSoft: '#EAF1FB', surf: '#F1F3F7', ink: '#3D3D3D', mut: '#6B6B6B', line: '#E2E7F0', green: '#1E7A4E', greenBg: '#E8F0E9', orange: '#B97A14', orangeBg: '#FBF1DC' };
+
+// десятичные по-бразильски: 1.5 → 1,5
+const dec = (n, d = 1) => n.toFixed(d).replace('.', ',');
+// количества: <10 — с десятичными (0,63), 10-100 — одна десятичная (58,8; не «58,800» — читается как тысячи), от 100 — целые с разделителем тысяч (16.800)
+const fmtQty = (n, d = 1) => n >= 100 ? Math.round(n).toLocaleString('pt-BR') : n >= 10 ? dec(n, 1) : dec(n, d);
+
+// числовые поля: только цифры и один разделитель (запятая или точка) — текст не проходит
+const sanitizeNum = (v) => {
+  let s = String(v).replace(/[^\d.,]/g, '');
+  const i = s.search(/[.,]/);
+  if (i !== -1) s = s.slice(0, i + 1) + s.slice(i + 1).replace(/[.,]/g, '');
+  return s;
+};
+
+// фирменная воронка (3 трапеции — та же, что в Product Covers и PDF-материалах)
+const FunnelMark = ({ size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" shapeRendering="geometricPrecision"><g fill="#fff"><polygon points="8,12 92,12 83,33 17,33"/><polygon points="18.5,37 81.5,37 72.5,59 27.5,59"/><polygon points="29,63 71,63 62,84 38,84"/></g></svg>
+);
 
 const TabBtn = ({ id, activeTab, setActiveTab, icon: Icon, label }) => (
   <button onClick={() => setActiveTab(id)} className="flex items-center gap-2 px-4 py-3 rounded-xl font-medium whitespace-nowrap transition-all" style={activeTab === id ? { backgroundColor: COLORS.primary, color: 'white' } : { backgroundColor: COLORS.surface, color: COLORS.accentLt, border: `1px solid ${COLORS.border}` }}>
@@ -14,7 +33,7 @@ const Input = ({ label, value, onChange, suffix, hint }) => (
   <div className="space-y-1">
     <label className="text-sm font-medium" style={{ color: COLORS.accentLt }}>{label}</label>
     <div className="relative">
-      <input type="text" value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-4 py-3 border-2 rounded-xl font-semibold pr-12" style={{ backgroundColor: COLORS.surfaceHover, borderColor: 'rgba(43,114,212,0.45)', color: COLORS.textH }} />
+      <input type="text" inputMode="decimal" value={value} onChange={(e) => onChange(sanitizeNum(e.target.value))} className="w-full px-4 py-3 border-2 rounded-xl font-semibold pr-12" style={{ backgroundColor: COLORS.surfaceHover, borderColor: 'rgba(43,114,212,0.45)', color: COLORS.textH }} />
       {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: COLORS.textSecondary }}>{suffix}</span>}
     </div>
     {hint && <p className="text-xs" style={{ color: COLORS.textSecondary }}>{hint}</p>}
@@ -34,14 +53,14 @@ const ExpenseRow = ({ expense, onUpdate, onRemove, isVar }) => (
   <div className="space-y-1">
     <div className="hidden sm:flex items-center gap-2 p-3 rounded-xl group" style={{ backgroundColor: COLORS.accent }}>
       <input type="text" value={expense.name} onChange={(e) => onUpdate(expense.id, 'name', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm min-w-0" style={{ backgroundColor: COLORS.surfaceHover, borderColor: COLORS.border, color: COLORS.textH }} />
-      <input type="text" value={isVar ? expense.percent : expense.amount} onChange={(e) => onUpdate(expense.id, isVar ? 'percent' : 'amount', e.target.value)} className="w-24 px-3 py-2 border rounded-lg font-semibold text-right" style={{ borderColor: COLORS.border, color: COLORS.textH, backgroundColor: COLORS.surfaceHover }} />
+      <input type="text" inputMode="decimal" value={isVar ? expense.percent : expense.amount} onChange={(e) => onUpdate(expense.id, isVar ? 'percent' : 'amount', sanitizeNum(e.target.value))} className="w-24 px-3 py-2 border rounded-lg font-semibold text-right" style={{ borderColor: COLORS.border, color: COLORS.textH, backgroundColor: COLORS.surfaceHover }} />
       <span className="text-sm w-8" style={{ color: COLORS.textSecondary }}>{isVar ? '%' : 'R$'}</span>
       <button onClick={() => onRemove(expense.id)} className="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-100" style={{ color: '#EF4444' }}><Trash2 size={18} /></button>
     </div>
     <div className="sm:hidden p-3 rounded-xl" style={{ backgroundColor: COLORS.accent }}>
       <input type="text" value={expense.name} onChange={(e) => onUpdate(expense.id, 'name', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm mb-2" style={{ backgroundColor: COLORS.surfaceHover, borderColor: COLORS.border, color: COLORS.textH }} />
       <div className="flex items-center gap-2">
-        <input type="text" value={isVar ? expense.percent : expense.amount} onChange={(e) => onUpdate(expense.id, isVar ? 'percent' : 'amount', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg font-semibold" style={{ borderColor: COLORS.border, color: COLORS.textH, backgroundColor: COLORS.surfaceHover }} />
+        <input type="text" inputMode="decimal" value={isVar ? expense.percent : expense.amount} onChange={(e) => onUpdate(expense.id, isVar ? 'percent' : 'amount', sanitizeNum(e.target.value))} className="flex-1 px-3 py-2 border rounded-lg font-semibold" style={{ borderColor: COLORS.border, color: COLORS.textH, backgroundColor: COLORS.surfaceHover }} />
         <span className="text-sm" style={{ color: COLORS.textSecondary }}>{isVar ? '%' : 'R$'}</span>
         <button onClick={() => onRemove(expense.id)} className="p-2 rounded-lg hover:bg-red-100" style={{ color: '#EF4444' }}><Trash2 size={18} /></button>
       </div>
@@ -51,9 +70,9 @@ const ExpenseRow = ({ expense, onUpdate, onRemove, isVar }) => (
 );
 
 const RoadmapRow = ({ goal, reachN, note, hl, avgReach, reelsPerWeek }) => {
-  const formatNum = (n) => !isFinite(n) || n <= 0 ? '—' : n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : Math.round(n).toLocaleString('pt-BR');
-  const pubs = avgReach > 0 ? Math.max(1, Math.ceil(reachN / avgReach)) : 1;
-  const weeks = avgReach > 0 && reelsPerWeek > 0 ? Math.max(1, Math.ceil(reachN / avgReach / reelsPerWeek)) : 1;
+  const formatNum = (n) => !isFinite(n) || n <= 0 ? '—' : n >= 1e6 ? dec(n/1e6)+'M' : n >= 1e3 ? dec(n/1e3)+'K' : Math.round(n).toLocaleString('pt-BR');
+  const pubs = isFinite(reachN) && avgReach > 0 ? Math.max(1, Math.ceil(reachN / avgReach)) : '—';
+  const weeks = isFinite(reachN) && avgReach > 0 && reelsPerWeek > 0 ? Math.max(1, Math.ceil(reachN / avgReach / reelsPerWeek)) : '—';
   return (
     <div className="p-4 rounded-xl" style={{ backgroundColor: hl ? COLORS.primary : COLORS.accent, color: 'white' }}>
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -68,6 +87,12 @@ const RoadmapRow = ({ goal, reachN, note, hl, avgReach, reelsPerWeek }) => {
   );
 };
 
+const PdfButton = ({ onClick, generating }) => (
+  <button onClick={onClick} disabled={generating} className="w-full py-3 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 border transition-all disabled:opacity-50" style={{ borderColor: COLORS.primary, color: COLORS.primary }}>
+    <Download size={20} /> {generating ? 'Gerando PDF...' : 'Baixar relatório PDF'}
+  </button>
+);
+
 const CalculateButton = ({ onClick, calculated }) => (
   <button onClick={onClick} className="w-full py-4 px-6 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]" style={{ backgroundColor: calculated ? COLORS.positive : COLORS.primary }}>
     <Play size={24} fill="white" />
@@ -81,29 +106,29 @@ const DoubleSalesCalculator = () => {
   const [reach, setReach] = useState({ avgReelsReach: '3000', reelsPerWeek: '3', monthlyGrowth: '10' });
 
   const [fixedExpenses, setFixedExpenses] = useState([
-    { id: 1, name: 'Automação (WhatsApp/email)', amount: '80', hint: 'ManyChat, RD Station, LeadLovers' },
+    { id: 1, name: 'Automação (WhatsApp/email)', amount: '100', hint: 'SendPulse, ManyChat, BotConversa' },
     { id: 2, name: 'Tráfego pago', amount: '0', hint: 'Meta Ads, Google Ads — comece com orgânico!' },
-    { id: 3, name: 'Assinaturas', amount: '100', hint: 'IA, Canva Pro, apps' },
-    { id: 4, name: 'Domínio e hospedagem', amount: '0', hint: '~R$30-80/ano se necessário' },
-    { id: 5, name: 'Editor de vídeo', amount: '0', hint: 'CapCut — faça você mesmo' },
-    { id: 6, name: 'Designer', amount: '0', hint: 'Canva — faça você mesmo' },
+    { id: 3, name: 'Assinaturas', amount: '100', hint: 'IA, apps (ex: Canva Pro)' },
+    { id: 4, name: 'Domínio e hospedagem', amount: '0', hint: 'Domínio ~R$40/ano; hospedagem grátis' },
+    { id: 5, name: 'Editor de vídeo (Reels/YouTube)', amount: '0', hint: 'No início, CapCut — dá para fazer por conta própria' },
+    { id: 6, name: 'Designer', amount: '0', hint: 'Canva, Figma — dá para fazer por conta própria' },
     { id: 7, name: 'Outros', amount: '0', hint: 'Outras despesas fixas' },
   ]);
 
   const [variableExpenses, setVariableExpenses] = useState([
-    { id: 1, name: 'Taxa da plataforma', percent: '9.9', hint: 'Hotmart 9,9%, Kiwify 8,99%, Eduzz 4,9%' },
+    { id: 1, name: 'Taxa da plataforma', percent: '9.9', hint: 'Hotmart 9,9% + R$1, Kiwify 8,99%, Eduzz até 9,9%' },
     { id: 2, name: 'Antecipação de recebíveis', percent: '2.5', hint: '2-4% para receber em 2 dias; 0 se esperar 30 dias' },
     { id: 3, name: 'Taxa de parcelamento', percent: '1.5', hint: 'Custo de oferecer 12x sem juros; 0 se só PIX' },
-    { id: 4, name: 'Impostos', percent: '6', hint: 'MEI: fixo ~R$81/mês; Simples: 6-13%' },
-    { id: 5, name: 'Reembolsos', percent: '7', hint: 'CDC: 7 dias por lei; típico 5-10%' },
+    { id: 4, name: 'Impostos', percent: '6', hint: 'Sobre o faturamento — depende do seu regime (MEI, Simples...)' },
+    { id: 5, name: 'Reembolsos', percent: '7', hint: 'Garantia mínima de 7 dias por lei (CDC); típico: 5-10%' },
     { id: 6, name: 'Outros %', percent: '0', hint: 'Outras taxas variáveis' },
   ]);
 
   const [startupExpenses, setStartupExpenses] = useState([
-    { id: 1, name: 'Equipamento', amount: '350', hint: 'Ring light ~R$200, microfone ~R$250' },
-    { id: 2, name: 'Design', amount: '0', hint: 'Canva + templates grátis' },
-    { id: 3, name: 'Landing page', amount: '0', hint: 'Hotmart Pages / Kiwify — grátis' },
-    { id: 4, name: 'Edição de vídeo', amount: '0', hint: 'CapCut grátis' },
+    { id: 1, name: 'Equipamento', amount: '350', hint: 'Ring light, microfone — o básico resolve' },
+    { id: 2, name: 'Identidade visual', amount: '0', hint: 'Capas e templates — dá para fazer no Canva' },
+    { id: 3, name: 'Landing page', amount: '0', hint: 'Hotmart Pages / GreatPages — grátis' },
+    { id: 4, name: 'Edição das aulas', amount: '0', hint: 'CapCut — dá para fazer por conta própria' },
     { id: 5, name: 'Outros', amount: '0', hint: 'Outras despesas únicas' },
   ]);
 
@@ -146,11 +171,11 @@ const DoubleSalesCalculator = () => {
       let totalTR = 0, totalFL = 0, totalRev = 0;
       for (let m = 1; m <= 12; m++) {
         const mReach = monthlyReachBase * Math.pow(growthRate, m - 1);
-        const mBot = mReach * conv.reelsToBot * mult;
+        const mBot = mReach * conv.reelsToBot * mult; // mult только на входе: сценарии = честные ±30%, без компаундинга по этапам
         const mLM = mBot * conv.botToLM;
-        const mTR = mLM * conv.lmToTR * mult;
-        const mApps = mTR * conv.trToApplication * mult + mLM * conv.lmToApplicationDirect * mult;
-        const mFL = Math.min(mApps * conv.applicationToFL * mult, p.maxFlagshipSales);
+        const mTR = mLM * conv.lmToTR;
+        const mApps = mTR * conv.trToApplication + mLM * conv.lmToApplicationDirect;
+        const mFL = Math.min(mApps * conv.applicationToFL, p.maxFlagshipSales);
         const mRev = mTR * p.tripwirePrice + mFL * (p.flagshipPrice + p.upsellPrice);
         totalTR += mTR; totalFL += mFL; totalRev += mRev;
         months.push({ m, reach: mReach, bot: mBot, tr: mTR, apps: mApps, fl: mFL, rev: mRev });
@@ -235,21 +260,24 @@ const DoubleSalesCalculator = () => {
         if (p > 0) pdf.addPage();
         const items = pageContents[p];
         for (const item of items) {
-          const imgData = item.canvas.toDataURL('image/png');
-          pdf.addImage(imgData, 'PNG', margin, item.y, item.width, item.height);
+          const imgData = item.canvas.toDataURL('image/jpeg', 0.85); // JPEG: ~10x меньше PNG, на белом фоне разницы не видно
+          pdf.addImage(imgData, 'JPEG', margin, item.y, item.width, item.height);
         }
         if (footerCanvas) {
           const footerY = pdfHeight - margin - footerImgHeight - footerOffset;
-          const footerImgData = footerCanvas.toDataURL('image/png');
-          pdf.addImage(footerImgData, 'PNG', margin, footerY, footerImgWidth, footerImgHeight);
-          pdf.link(margin, footerY, pdfWidth - margin * 2, footerImgHeight, { url: 'https://yuliyatsapova.com.br/' });
+          const footerImgData = footerCanvas.toDataURL('image/jpeg', 0.85);
+          pdf.addImage(footerImgData, 'JPEG', margin, footerY, footerImgWidth, footerImgHeight);
+          // футер: левая половина → Instagram, правая → сайт (текст в футере в том же порядке)
+          const halfW = (pdfWidth - margin * 2) / 2;
+          pdf.link(margin, footerY, halfW, footerImgHeight, { url: 'https://www.instagram.com/yuliya_tsapova/' });
+          pdf.link(margin + halfW, footerY, halfW, footerImgHeight, { url: 'https://yuliyatsapova.com.br/' });
         }
         pdf.setFontSize(9);
         pdf.setTextColor(150, 150, 150);
         pdf.text(`${p + 1} / ${pageContents.length}`, pdfWidth - margin, pdfHeight - 6, { align: 'right' });
       }
 
-      pdf.save('Double_Sales_Report_BR.pdf');
+      pdf.save('Relatorio_Double_Sales.pdf');
     } catch (error) {
       console.error('PDF generation error:', error);
       alert('Erro ao gerar PDF. Tente novamente.');
@@ -259,7 +287,7 @@ const DoubleSalesCalculator = () => {
   };
 
   const resetCalc = () => setCalculated(false);
-  const formatNum = (n) => !isFinite(n) ? '—' : n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : Math.round(n).toLocaleString('pt-BR');
+  const formatNum = (n) => !isFinite(n) ? '—' : n >= 1e6 ? dec(n/1e6)+'M' : n >= 1e3 ? dec(n/1e3)+'K' : Math.round(n).toLocaleString('pt-BR');
   const formatCur = (n) => !isFinite(n) ? '—' : 'R$ ' + new Intl.NumberFormat('pt-BR').format(Math.round(n));
 
   // PDF Report Component
@@ -281,16 +309,16 @@ const DoubleSalesCalculator = () => {
     const Section = ({ title, children }) => (
       <div className="pdf-section" style={{ backgroundColor: 'white', marginTop: 0, marginBottom: 0, paddingTop: title && BIG_TITLES.has(title) ? 10 : 0 }}>
         {title ? (
-          <Piece style={{ backgroundColor: PDF_COLORS.primary, color: 'white', padding: '10px 16px', fontSize: 14, fontWeight: 'bold' }}>{title}</Piece>
+          <Piece style={{ padding: '13px 16px 8px', fontSize: 15, fontWeight: 'bold', color: PDF_COLORS.navy, letterSpacing: '0.05em', borderBottom: `2px solid ${PDF_COLORS.accent}` }}>{title}</Piece>
         ) : null}
         {children}
       </div>
     );
 
     const Row = ({ label, value, bold, highlight }) => (
-      <Piece style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 16px 9px', backgroundColor: highlight ? PDF_COLORS.mid : '#EBF4FF', color: highlight ? 'white' : '#333', borderBottom: '1px solid white', fontSize: 12 }}>
+      <Piece style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 16px 10px', backgroundColor: highlight ? PDF_COLORS.navy : 'white', color: highlight ? 'white' : PDF_COLORS.ink, borderBottom: `1px solid ${PDF_COLORS.line}`, fontSize: 14 }}>
         <span style={{ fontWeight: bold ? 'bold' : 'normal' }}>{label}</span>
-        <span style={{ fontWeight: 'bold' }}>{value}</span>
+        <span style={{ fontWeight: 'bold', color: highlight ? 'white' : PDF_COLORS.navy }}>{value}</span>
       </Piece>
     );
 
@@ -302,10 +330,15 @@ const DoubleSalesCalculator = () => {
     const EXP_ROWS_PER_PAGE = 22;
 
     return (
-      <div ref={ref} style={{ width: 794, padding: 20, backgroundColor: 'white', fontFamily: 'Arial, sans-serif', fontSize: 12, color: '#333' }}>
-        <div className="pdf-section" style={{ backgroundColor: PDF_COLORS.primary, color: 'white', padding: '25px 20px', textAlign: 'center', marginBottom: 12 }}>
-          <div style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 5 }}>DOUBLE SALES</div>
-          <div style={{ fontSize: 14, opacity: 0.9 }}>Sistema de vendas</div>
+      <div ref={ref} style={{ width: 794, padding: 20, backgroundColor: 'white', fontFamily: 'Arial, sans-serif', fontSize: 14, color: '#333' }}>
+        <div className="pdf-section" style={{ backgroundColor: PDF_COLORS.navy, color: 'white', padding: '22px 24px', borderRadius: 12, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 46, height: 46, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.13)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <FunnelMark size={30} />
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontSize: 28, fontWeight: 'bold', letterSpacing: '0.06em', lineHeight: 1.1 }}>DOUBLE SALES</div>
+            <div style={{ fontSize: 15, opacity: 0.85, marginTop: 3 }}>Sistema de vendas — seu relatório personalizado</div>
+          </div>
         </div>
 
         <Section title="PRODUTOS">
@@ -322,37 +355,38 @@ const DoubleSalesCalculator = () => {
         </Section>
 
         <Section title="CONVERSÕES DO FUNIL">
-          <Row label="Conteúdo → entrada na automação" value={(results.conv.reelsToBot * 100).toFixed(1) + '%'} />
-          <Row label="Automação → visualização do LM" value={(results.conv.botToLM * 100).toFixed(0) + '%'} />
-          <Row label="LM → compra do TW" value={(results.conv.lmToTR * 100).toFixed(1) + '%'} />
+          <Row label="Conteúdo → entrada na automação" value={dec(results.conv.reelsToBot * 100) + '%'} />
+          <Row label="Automação → consumo do LM" value={(results.conv.botToLM * 100).toFixed(0) + '%'} />
+          <Row label="LM → compra do TW" value={dec(results.conv.lmToTR * 100) + '%'} />
           <Row label="TW → inscrição para o PP" value={(results.conv.trToApplication * 100).toFixed(0) + '%'} />
           <Row label="Inscrição → compra do PP" value={(results.conv.applicationToFL * 100).toFixed(0) + '%'} />
-          {results.conv.lmToApplicationDirect > 0 && <Row label="LM/Conteúdo → inscrição direta" value={(results.conv.lmToApplicationDirect * 100).toFixed(1) + '%'} />}
+          {results.conv.lmToApplicationDirect > 0 && <Row label="LM/Conteúdo → inscrição direta" value={dec(results.conv.lmToApplicationDirect * 100) + '%'} />}
         </Section>
 
         <Section title="RESULTADOS (por semana)">
           <Row label="Alcance" value={formatNum(results.weeklyReach)} />
-          <Row label="Entradas na automação" value={results.weeklyBotSubs.toFixed(1)} />
-          <Row label="Visualizações do LM" value={results.weeklyLMViews.toFixed(1)} />
-          <Row label="Vendas TW" value={results.weeklyTRSales.toFixed(2)} />
-          <Row label="Inscrições para o PP" value={results.weeklyApps.toFixed(2)} />
-          <Row label="Vendas do PP" value={results.weeklyFLSales.toFixed(3)} />
+          <Row label="Entradas na automação" value={fmtQty(results.weeklyBotSubs)} />
+          <Row label="Consumo do LM (pessoas)" value={fmtQty(results.weeklyLMViews)} />
+          <Row label="Vendas do TW" value={fmtQty(results.weeklyTRSales, 2)} />
+          <Row label="Inscrições para o PP" value={fmtQty(results.weeklyApps, 2)} />
+          <Row label="Vendas do PP" value={fmtQty(results.weeklyFLSales, 3)} />
           <Row label="Faturamento por semana" value={formatCur(results.weeklyRevTotal)} bold highlight />
           <Row label="Faturamento por mês" value={formatCur(results.monthlyRev)} bold highlight />
           <Row label="Lucro por mês" value={formatCur(results.monthlyProfit)} bold highlight />
         </Section>
 
         <Section title="QUANTO PRECISA PARA SUAS METAS">
+          <Piece style={{ padding: '6px 16px', fontSize: 12, color: PDF_COLORS.mut, backgroundColor: 'white' }}>Com o alcance atual, sem considerar o crescimento — na prática pode ser mais{' '}rápido.</Piece>
           {[
-            { name: 'Primeira venda TW', reach: results.reachFirstTR },
+            { name: 'Primeira venda do TW', reach: results.reachFirstTR },
             { name: 'Primeira venda do PP', reach: results.reachFirstFL },
             { name: '30 inscrições para o PP', reach: results.reach30Apps },
             { name: 'R$ 10.000', reach: results.reach10k },
-            { name: 'R$ 100.000 (6em7)', reach: results.reach100k },
+            { name: 'R$ 100.000', reach: results.reach100k },
           ].map((g, i) => {
-            const pubs = results.r.avgReelsReach > 0 ? Math.max(1, Math.ceil(g.reach / results.r.avgReelsReach)) : 1;
-            const weeks = results.r.avgReelsReach > 0 && results.r.reelsPerWeek > 0 ? Math.max(1, Math.ceil(g.reach / results.r.avgReelsReach / results.r.reelsPerWeek)) : 1;
-            return <Row key={i} label={g.name} value={formatNum(g.reach) + ' alc / ' + pubs + ' pub / ' + weeks + ' sem'} />;
+            const pubs = isFinite(g.reach) && results.r.avgReelsReach > 0 ? Math.max(1, Math.ceil(g.reach / results.r.avgReelsReach)) : '—';
+            const weeks = isFinite(g.reach) && results.r.avgReelsReach > 0 && results.r.reelsPerWeek > 0 ? Math.max(1, Math.ceil(g.reach / results.r.avgReelsReach / results.r.reelsPerWeek)) : '—';
+            return <Row key={i} label={g.name} value={formatNum(g.reach) + ' alc / ' + pubs + ' pub / ' + weeks + ' sem.'} />;
           })}
         </Section>
 
@@ -364,17 +398,17 @@ const DoubleSalesCalculator = () => {
           }
           if (nonZeroVar.length > 0) {
             expenseRows.push({ type: 'sub', text: 'Variáveis:' });
-            nonZeroVar.forEach(e => expenseRows.push({ type: 'row', label: e.name, value: num(e.percent) + '%' }));
+            nonZeroVar.forEach(e => expenseRows.push({ type: 'row', label: e.name, value: String(num(e.percent)).replace('.', ',') + '%' }));
           }
           if (nonZeroStartup.length > 0) {
-            expenseRows.push({ type: 'sub', text: 'Iniciais:' });
+            expenseRows.push({ type: 'sub', text: 'Investimento inicial:' });
             nonZeroStartup.forEach(e => expenseRows.push({ type: 'row', label: e.name, value: formatCur(num(e.amount)) }));
           }
           const summaryRows = [
             { type: 'row', label: 'TOTAL fixas/mês', value: formatCur(results.totalFixed), bold: true, highlight: true },
-            { type: 'row', label: 'TOTAL variáveis', value: (results.totalVarPercent * 100).toFixed(1) + '%', bold: true, highlight: true },
-            { type: 'row', label: 'TOTAL iniciais', value: formatCur(results.totalStartup), bold: true, highlight: true },
-            { type: 'row', label: 'Payback', value: results.paybackWeeks === Infinity ? '—' : results.paybackWeeks + ' sem', bold: true, highlight: true },
+            { type: 'row', label: 'TOTAL variáveis', value: dec(results.totalVarPercent * 100) + '%', bold: true, highlight: true },
+            { type: 'row', label: 'TOTAL investimento inicial', value: formatCur(results.totalStartup), bold: true, highlight: true },
+            { type: 'row', label: 'Payback', value: results.paybackWeeks === Infinity ? '—' : results.paybackWeeks + (results.paybackWeeks === 1 ? ' semana' : ' semanas'), bold: true, highlight: true },
           ];
           const pages = chunk(expenseRows, EXP_ROWS_PER_PAGE);
           return (
@@ -383,7 +417,7 @@ const DoubleSalesCalculator = () => {
                 <Section key={idx} title={idx === 0 ? 'DESPESAS' : ''}>
                   {page.map((it, i) => {
                     if (it.type === 'sub') {
-                      return (<Piece key={`sub-${i}`} style={{ padding: '8px 16px 6px', fontWeight: 'bold', color: PDF_COLORS.primary, fontSize: 11, backgroundColor: 'white' }}>{it.text}</Piece>);
+                      return (<Piece key={`sub-${i}`} style={{ padding: '11px 16px 6px', fontWeight: 'bold', color: PDF_COLORS.accent, fontSize: 13, letterSpacing: '0.03em', backgroundColor: 'white' }}>{it.text}</Piece>);
                     }
                     return (<Row key={`row-${i}`} label={it.label} value={it.value} bold={it.bold} highlight={it.highlight} />);
                   })}
@@ -397,28 +431,32 @@ const DoubleSalesCalculator = () => {
         })()}
 
         <Section title="FATURAMENTO">
-          <Piece style={{ backgroundColor: '#F97316', color: 'white', padding: '8px 16px', fontSize: 13, fontWeight: 'bold', marginTop: 10 }}>CENÁRIO: CONSERVADOR</Piece>
-          <Row label="Vendas TW/ano" value={Math.round(results.scenarios.conservative.totalTR)} />
-          <Row label="Vendas do PP/ano" value={results.scenarios.conservative.totalFL.toFixed(1)} />
+          <Piece style={{ backgroundColor: PDF_COLORS.orangeBg, color: PDF_COLORS.orange, padding: '10px 16px', fontSize: 14, fontWeight: 'bold', marginTop: 12, borderLeft: `4px solid ${PDF_COLORS.orange}` }}>CENÁRIO: CONSERVADOR</Piece>
+          <Row label="Vendas do TW/ano" value={Math.round(results.scenarios.conservative.totalTR).toLocaleString('pt-BR')} />
+          <Row label="Vendas do PP/ano" value={fmtQty(results.scenarios.conservative.totalFL, 1)} />
           <Row label="Faturamento anual" value={formatCur(results.scenarios.conservative.totalRev)} bold />
           <Row label="Lucro líquido" value={formatCur(results.scenarios.conservative.yearProfit)} bold />
 
-          <Piece style={{ backgroundColor: PDF_COLORS.primary, color: 'white', padding: '8px 16px', fontSize: 13, fontWeight: 'bold', marginTop: 10 }}>CENÁRIO: REALISTA</Piece>
-          <Row label="Vendas TW/ano" value={Math.round(results.scenarios.realistic.totalTR)} />
-          <Row label="Vendas do PP/ano" value={results.scenarios.realistic.totalFL.toFixed(1)} />
+          <Piece style={{ backgroundColor: PDF_COLORS.accentSoft, color: PDF_COLORS.accent, padding: '10px 16px', fontSize: 14, fontWeight: 'bold', marginTop: 12, borderLeft: `4px solid ${PDF_COLORS.accent}` }}>CENÁRIO: REALISTA</Piece>
+          <Row label="Vendas do TW/ano" value={Math.round(results.scenarios.realistic.totalTR).toLocaleString('pt-BR')} />
+          <Row label="Vendas do PP/ano" value={fmtQty(results.scenarios.realistic.totalFL, 1)} />
           <Row label="Faturamento anual" value={formatCur(results.scenarios.realistic.totalRev)} bold />
           <Row label="Lucro líquido" value={formatCur(results.scenarios.realistic.yearProfit)} bold />
 
-          <Piece style={{ backgroundColor: '#22C55E', color: 'white', padding: '8px 16px', fontSize: 13, fontWeight: 'bold', marginTop: 10 }}>CENÁRIO: OTIMISTA</Piece>
-          <Row label="Vendas TW/ano" value={Math.round(results.scenarios.optimistic.totalTR)} />
-          <Row label="Vendas do PP/ano" value={results.scenarios.optimistic.totalFL.toFixed(1)} />
+          <Piece style={{ backgroundColor: PDF_COLORS.greenBg, color: PDF_COLORS.green, padding: '10px 16px', fontSize: 14, fontWeight: 'bold', marginTop: 12, borderLeft: `4px solid ${PDF_COLORS.green}` }}>CENÁRIO: OTIMISTA</Piece>
+          <Row label="Vendas do TW/ano" value={Math.round(results.scenarios.optimistic.totalTR).toLocaleString('pt-BR')} />
+          <Row label="Vendas do PP/ano" value={fmtQty(results.scenarios.optimistic.totalFL, 1)} />
           <Row label="Faturamento anual" value={formatCur(results.scenarios.optimistic.totalRev)} bold />
           <Row label="Lucro líquido" value={formatCur(results.scenarios.optimistic.yearProfit)} bold />
         </Section>
 
-        <div id="pdf-footer" style={{ width: '100%', marginTop: 0, paddingTop: 14, paddingBottom: 20, lineHeight: 1.25, borderTop: `2px solid ${PDF_COLORS.primary}`, textAlign: 'center', backgroundColor: 'white' }}>
-          <div style={{ color: '#666', fontSize: 14, marginBottom: 5 }}>Calculado com a calculadora Double Sales</div>
-          <a href="https://yuliyatsapova.com.br/" style={{ display: 'inline-block', color: PDF_COLORS.primary, fontSize: 14, fontWeight: 'bold', textDecoration: 'none' }}>@yuliya_tsapova | yuliyatsapova.com.br</a>
+        <div id="pdf-footer" style={{ width: '100%', marginTop: 0, paddingTop: 14, paddingBottom: 20, lineHeight: 1.25, borderTop: `2px solid ${PDF_COLORS.accent}`, textAlign: 'center', backgroundColor: 'white' }}>
+          <div style={{ color: PDF_COLORS.mut, fontSize: 15, marginBottom: 5 }}>Gerado pela Calculadora Double Sales</div>
+          <div style={{ fontSize: 16, fontWeight: 'bold' }}>
+            <a href="https://www.instagram.com/yuliya_tsapova/" style={{ color: PDF_COLORS.navy, textDecoration: 'none' }}>@yuliya_tsapova</a>
+            <span style={{ color: PDF_COLORS.mut, fontWeight: 'normal' }}> | </span>
+            <a href="https://yuliyatsapova.com.br/" style={{ color: PDF_COLORS.navy, textDecoration: 'none' }}>yuliyatsapova.com.br</a>
+          </div>
         </div>
       </div>
     );
@@ -428,10 +466,10 @@ const DoubleSalesCalculator = () => {
     <div className="min-h-screen" style={{ backgroundColor: COLORS.bg }}>
       <header className="text-white py-6 px-4" style={{ backgroundColor: COLORS.bg, borderBottom: `1px solid ${COLORS.border}` }}>
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.primary, boxShadow: '0 0 24px rgba(43,114,212,0.5)' }}><Rocket size={28} color="#FFFFFF" /></div>
+          <a href="https://yuliyatsapova.com.br/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3" style={{ color: 'inherit', textDecoration: 'none' }}>
+            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.primary, boxShadow: '0 0 24px rgba(43,114,212,0.5)' }}><FunnelMark size={28} /></div>
             <div><h1 className="text-2xl md:text-3xl font-bold">DOUBLE SALES</h1><p className="text-sm" style={{ opacity: 0.8 }}>Calculadora do sistema de vendas</p></div>
-          </div>
+          </a>
         </div>
       </header>
 
@@ -451,8 +489,8 @@ const DoubleSalesCalculator = () => {
             <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
               <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Seus produtos</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Input label="Preço do tripwire" value={products.tripwirePrice} onChange={(v) => { setProducts({...products, tripwirePrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$27-197" />
-                <Input label="Preço do produto principal" value={products.flagshipPrice} onChange={(v) => { setProducts({...products, flagshipPrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$497-5.000" />
+                <Input label="Preço do tripwire" value={products.tripwirePrice} onChange={(v) => { setProducts({...products, tripwirePrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$27-297" />
+                <Input label="Preço do produto principal" value={products.flagshipPrice} onChange={(v) => { setProducts({...products, flagshipPrice: v}); resetCalc(); }} suffix="R$" hint="Referência: R$497-15.000" />
                 <Input label="Upsell" value={products.upsellPrice} onChange={(v) => { setProducts({...products, upsellPrice: v}); resetCalc(); }} suffix="R$" hint="Opcional" />
                 <Input label="Vagas do PP/mês" value={products.maxFlagshipSales} onChange={(v) => { setProducts({...products, maxFlagshipSales: v}); resetCalc(); }} hint="999 = sem limite" />
               </div>
@@ -461,19 +499,19 @@ const DoubleSalesCalculator = () => {
             <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
               <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Conversões do funil</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Input label="Conteúdo → entrada na automação" value={conversions.reelsToBot} onChange={(v) => { setConversions({...conversions, reelsToBot: v}); resetCalc(); }} suffix="%" hint="Normal: 1-3%" />
-                <Input label="Automação → visualização do LM" value={conversions.botToLM} onChange={(v) => { setConversions({...conversions, botToLM: v}); resetCalc(); }} suffix="%" hint="Normal: 60-80%" />
-                <Input label="LM → compra do TW" value={conversions.lmToTR} onChange={(v) => { setConversions({...conversions, lmToTR: v}); resetCalc(); }} suffix="%" hint="Normal: 3-7%" />
-                <Input label="TW → inscrição para o PP" value={conversions.trToApplication} onChange={(v) => { setConversions({...conversions, trToApplication: v}); resetCalc(); }} suffix="%" hint="Normal: 20-40%" />
-                <Input label="Inscrição → compra do PP" value={conversions.applicationToFL} onChange={(v) => { setConversions({...conversions, applicationToFL: v}); resetCalc(); }} suffix="%" hint="Normal: 15-30%" />
-                <Input label="LM/Conteúdo → inscrição direta" value={conversions.lmToApplicationDirect} onChange={(v) => { setConversions({...conversions, lmToApplicationDirect: v}); resetCalc(); }} suffix="%" hint="0, se somente via TW" />
+                <Input label="Conteúdo → entrada na automação" value={conversions.reelsToBot} onChange={(v) => { setConversions({...conversions, reelsToBot: v}); resetCalc(); }} suffix="%" hint="Normal: 1-2%" />
+                <Input label="Automação → consumo do LM" value={conversions.botToLM} onChange={(v) => { setConversions({...conversions, botToLM: v}); resetCalc(); }} suffix="%" hint="Normal: 60-70%" />
+                <Input label="LM → compra do TW" value={conversions.lmToTR} onChange={(v) => { setConversions({...conversions, lmToTR: v}); resetCalc(); }} suffix="%" hint="Normal: 3-5%" />
+                <Input label="TW → inscrição para o PP" value={conversions.trToApplication} onChange={(v) => { setConversions({...conversions, trToApplication: v}); resetCalc(); }} suffix="%" hint="Normal: 20-30%" />
+                <Input label="Inscrição → compra do PP" value={conversions.applicationToFL} onChange={(v) => { setConversions({...conversions, applicationToFL: v}); resetCalc(); }} suffix="%" hint="Normal: 15-25%" />
+                <Input label="LM/Conteúdo → inscrição direta" value={conversions.lmToApplicationDirect} onChange={(v) => { setConversions({...conversions, lmToApplicationDirect: v}); resetCalc(); }} suffix="%" hint="Deixe 0 se as inscrições vierem só do TW" />
               </div>
             </section>
 
             <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
               <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Seu alcance</h2>
               <div className="grid md:grid-cols-3 gap-4">
-                <Input label="Alcance médio por publicação" value={reach.avgReelsReach} onChange={(v) => { setReach({...reach, avgReelsReach: v}); resetCalc(); }} hint="Referência: veja benchmarks" />
+                <Input label="Alcance médio por publicação" value={reach.avgReelsReach} onChange={(v) => { setReach({...reach, avgReelsReach: v}); resetCalc(); }} hint="Referência: veja a aba Dicas" />
                 <Input label="Publicações por semana" value={reach.reelsPerWeek} onChange={(v) => { setReach({...reach, reelsPerWeek: v}); resetCalc(); }} hint="Normal: 2-7" />
                 <Input label="Crescimento do alcance/mês" value={reach.monthlyGrowth} onChange={(v) => { setReach({...reach, monthlyGrowth: v}); resetCalc(); }} suffix="%" hint="Normal: 5-15%" />
               </div>
@@ -499,7 +537,7 @@ const DoubleSalesCalculator = () => {
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <ResultCard icon={DollarSign} label="Faturamento/sem" value={formatCur(results.weeklyRevTotal)} sub={'TW: ' + formatCur(results.weeklyRevTR)} />
+                    <ResultCard icon={DollarSign} label="Faturamento/semana" value={formatCur(results.weeklyRevTotal)} sub={'TW: ' + formatCur(results.weeklyRevTR)} />
                     <ResultCard icon={TrendingUp} label="Faturamento/mês" value={formatCur(results.monthlyRev)} hl />
                     <ResultCard icon={Target} label="Lucro/mês" value={formatCur(results.monthlyProfit)} sub="Após despesas" />
                     <ResultCard icon={Sparkles} label="Projeção anual" value={formatCur(results.scenarios.realistic.totalRev)} sub={'Líquido: ' + formatCur(results.scenarios.realistic.yearProfit)} />
@@ -507,19 +545,18 @@ const DoubleSalesCalculator = () => {
                 </section>
 
                 <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
-                  <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Quanto precisa para suas metas?</h2>
+                  <h2 className="text-xl font-bold mb-2" style={{ color: COLORS.textH }}>Quanto precisa para suas metas?</h2>
+                  <p className="text-sm mb-6" style={{ color: COLORS.textSecondary }}>Cálculo com seu alcance atual, sem considerar o crescimento — na prática você pode chegar mais&nbsp;rápido.</p>
                   <div className="space-y-4">
-                    <RoadmapRow goal="Primeira venda TW" reachN={results.reachFirstTR} note="Mínimo para o primeiro resultado" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
+                    <RoadmapRow goal="Primeira venda do TW" reachN={results.reachFirstTR} note="Mínimo para o primeiro resultado" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
                     <RoadmapRow goal="Primeira venda do PP" reachN={results.reachFirstFL} note="Se as vendas vierem sem lançamento" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
                     <RoadmapRow goal="30 inscrições para o PP" reachN={results.reach30Apps} note="Mínimo para lançamento" avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
-                    <RoadmapRow goal="R$ 10.000" reachN={results.reach10k} note="Primeira meta — você chegou!" hl avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
-                    <RoadmapRow goal="R$ 100.000 (6em7)" reachN={results.reach100k} note="Seis dígitos — é real!" hl avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
+                    <RoadmapRow goal="R$ 10.000" reachN={results.reach10k} note="Sua primeira grande meta" hl avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
+                    <RoadmapRow goal="R$ 100.000" reachN={results.reach100k} note="Seis dígitos — dá pra chegar!" hl avgReach={results.r.avgReelsReach} reelsPerWeek={results.r.reelsPerWeek} />
                   </div>
                 </section>
 
-                <button onClick={generatePDF} disabled={generating} className="w-full py-3 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 border transition-all disabled:opacity-50" style={{ borderColor: COLORS.primary, color: COLORS.primary }}>
-                  <Download size={20} /> {generating ? 'Gerando PDF...' : 'Baixar relatório PDF'}
-                </button>
+                <PdfButton onClick={generatePDF} generating={generating} />
               </>
             )}
           </div>
@@ -545,7 +582,7 @@ const DoubleSalesCalculator = () => {
 
             <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
               <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                <h2 className="text-xl font-bold" style={{ color: COLORS.textH }}>Iniciais</h2>
+                <h2 className="text-xl font-bold" style={{ color: COLORS.textH }}>Investimento inicial</h2>
                 <button onClick={() => { setStartupExpenses([...startupExpenses, { id: Date.now(), name: 'Nova despesa', amount: '0', hint: '' }]); resetCalc(); }} className="flex items-center gap-2 px-4 py-2 text-white rounded-xl" style={{ backgroundColor: COLORS.primary }}><Plus size={18} />Adicionar</button>
               </div>
               <div className="space-y-3">{startupExpenses.map(e => <ExpenseRow key={e.id} expense={e} onUpdate={(id, f, v) => { setStartupExpenses(startupExpenses.map(x => x.id === id ? {...x, [f]: v} : x)); resetCalc(); }} onRemove={(id) => { if(startupExpenses.length > 1) setStartupExpenses(startupExpenses.filter(x => x.id !== id)); resetCalc(); }} />)}</div>
@@ -554,15 +591,18 @@ const DoubleSalesCalculator = () => {
             <CalculateButton onClick={calculate} calculated={calculated} />
 
             {calculated && results && (
-              <section className="rounded-3xl p-6 shadow-xl text-white" style={{ backgroundColor: COLORS.primary }}>
-                <h2 className="text-xl font-bold mb-6">Resumo</h2>
-                <div className="grid sm:grid-cols-4 gap-4">
-                  <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}><p className="text-sm text-white" style={{ opacity: 0.8 }}>Fixas/mês</p><p className="text-xl font-bold text-white">{formatCur(results.totalFixed)}</p></div>
-                  <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}><p className="text-sm text-white" style={{ opacity: 0.8 }}>Variáveis</p><p className="text-xl font-bold text-white">{(results.totalVarPercent * 100).toFixed(1)}%</p></div>
-                  <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}><p className="text-sm text-white" style={{ opacity: 0.8 }}>Iniciais</p><p className="text-xl font-bold text-white">{formatCur(results.totalStartup)}</p></div>
-                  <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}><p className="text-sm text-white" style={{ opacity: 0.8 }}>Payback</p><p className="text-xl font-bold text-white">{results.paybackWeeks === Infinity ? '—' : results.paybackWeeks} sem</p></div>
-                </div>
-              </section>
+              <>
+                <section className="rounded-3xl p-6 shadow-xl text-white" style={{ backgroundColor: COLORS.primary }}>
+                  <h2 className="text-xl font-bold mb-6">Resumo</h2>
+                  <div className="grid sm:grid-cols-4 gap-4">
+                    <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}><p className="text-sm text-white" style={{ opacity: 0.8 }}>Fixas/mês</p><p className="text-xl font-bold text-white">{formatCur(results.totalFixed)}</p></div>
+                    <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}><p className="text-sm text-white" style={{ opacity: 0.8 }}>Variáveis</p><p className="text-xl font-bold text-white">{dec(results.totalVarPercent * 100)}%</p></div>
+                    <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}><p className="text-sm text-white" style={{ opacity: 0.8 }}>Invest. inicial</p><p className="text-xl font-bold text-white">{formatCur(results.totalStartup)}</p></div>
+                    <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}><p className="text-sm text-white" style={{ opacity: 0.8 }}>Payback</p><p className="text-xl font-bold text-white">{results.paybackWeeks === Infinity ? '—' : results.paybackWeeks + (results.paybackWeeks === 1 ? ' semana' : ' semanas')}</p></div>
+                  </div>
+                </section>
+                <PdfButton onClick={generatePDF} generating={generating} />
+              </>
             )}
           </div>
         )}
@@ -572,7 +612,7 @@ const DoubleSalesCalculator = () => {
             {calculated && results ? (
               <>
                 <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
-                  <p className="text-sm" style={{ color: COLORS.textBody }}><strong>Crescimento:</strong> alcance +{results.r.monthlyGrowth}%/mês. Início: {formatNum(results.monthlyReachBase)} → ano: {formatNum(results.monthlyReachBase * Math.pow(1 + results.r.monthlyGrowth/100, 11))}</p>
+                  <p className="text-sm" style={{ color: COLORS.textBody }}><strong>Crescimento:</strong> alcance +{results.r.monthlyGrowth}%/mês. Começa em {formatNum(results.monthlyReachBase)} → termina o ano em {formatNum(results.monthlyReachBase * Math.pow(1 + results.r.monthlyGrowth/100, 11))}. As vendas do PP também podem se concentrar nas janelas de&nbsp;vendas — aqui mostramos a média do&nbsp;mês.</p>
                 </div>
                 {[{ name: 'Cenário: Conservador', key: 'conservative', color: '#F97316' }, { name: 'Cenário: Realista', key: 'realistic', color: COLORS.primary }, { name: 'Cenário: Otimista', key: 'optimistic', color: '#22C55E' }].map((sc) => {
                   const data = results.scenarios[sc.key];
@@ -582,15 +622,15 @@ const DoubleSalesCalculator = () => {
                       <div className="p-6">
                         <div className="grid sm:grid-cols-4 gap-4 mb-6">
                           <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>TW/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{formatNum(data.totalTR)}</p></div>
-                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>PP/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{data.totalFL.toFixed(1)}</p></div>
+                          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>PP/ano</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{fmtQty(data.totalFL, 1)}</p></div>
                           <div className="text-center p-4 rounded-xl" style={{ backgroundColor: COLORS.accent }}><p className="text-sm" style={{ color: COLORS.textSecondary }}>Faturamento</p><p className="text-2xl font-bold" style={{ color: COLORS.textBody }}>{formatCur(data.totalRev)}</p></div>
                           <div className="text-center p-4 rounded-xl text-white" style={{ backgroundColor: sc.color }}><p className="text-sm" style={{ opacity: 0.9 }}>Líquido</p><p className="text-2xl font-bold">{formatCur(data.yearProfit)}</p></div>
                         </div>
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.accent }}><th className="px-3 py-2 text-left" style={{ color: COLORS.textSecondary }}>M</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Alcance</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Autom.</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>TW</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Inscrições</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>PP</th><th className="px-3 py-2 text-right" style={{ color: COLORS.textSecondary }}>Faturamento</th></tr></thead>
                             <tbody>
-                              {data.months.map((row) => (<tr key={row.m} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-3 py-2" style={{ color: COLORS.textBody }}>{row.m}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{formatNum(row.reach)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{formatNum(row.bot)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.tr.toFixed(1)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.apps.toFixed(1)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{row.fl.toFixed(2)}</td><td className="px-3 py-2 text-right font-bold" style={{ color: COLORS.textBody }}>{formatCur(row.rev)}</td></tr>))}
-                              <tr style={{ backgroundColor: sc.color, color: 'white' }}><td className="px-3 py-2 font-bold">ANO</td><td></td><td></td><td className="px-3 py-2 text-right font-bold">{formatNum(data.totalTR)}</td><td></td><td className="px-3 py-2 text-right font-bold">{data.totalFL.toFixed(1)}</td><td className="px-3 py-2 text-right font-bold">{formatCur(data.totalRev)}</td></tr>
+                              {data.months.map((row) => (<tr key={row.m} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-3 py-2" style={{ color: COLORS.textBody }}>{row.m}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{formatNum(row.reach)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{formatNum(row.bot)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{fmtQty(row.tr)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{fmtQty(row.apps)}</td><td className="px-3 py-2 text-right" style={{ color: COLORS.textBody }}>{fmtQty(row.fl, 2)}</td><td className="px-3 py-2 text-right font-bold" style={{ color: COLORS.textBody }}>{formatCur(row.rev)}</td></tr>))}
+                              <tr style={{ backgroundColor: sc.color, color: 'white' }}><td className="px-3 py-2 font-bold">ANO</td><td></td><td></td><td className="px-3 py-2 text-right font-bold">{formatNum(data.totalTR)}</td><td></td><td className="px-3 py-2 text-right font-bold">{fmtQty(data.totalFL, 1)}</td><td className="px-3 py-2 text-right font-bold">{formatCur(data.totalRev)}</td></tr>
                             </tbody>
                           </table>
                         </div>
@@ -602,7 +642,7 @@ const DoubleSalesCalculator = () => {
             ) : (
               <div className="rounded-3xl p-12 shadow-xl text-center" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
                 <p className="text-xl mb-6" style={{ color: COLORS.textH }}>Preencha os dados na aba "Principal" e clique em "Calcular"</p>
-                <button onClick={() => setActiveTab('main')} className="px-6 py-3 rounded-xl text-white font-bold" style={{ backgroundColor: COLORS.primary }}>Ir para Principal</button>
+                <button onClick={() => setActiveTab('main')} className="px-6 py-3 rounded-xl text-white font-bold" style={{ backgroundColor: COLORS.primary }}>Ir para a aba Principal</button>
               </div>
             )}
           </div>
@@ -611,7 +651,8 @@ const DoubleSalesCalculator = () => {
         {activeTab === 'useful' && (
           <div className="space-y-8">
             <section className="rounded-3xl p-6 shadow-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
-              <h2 className="text-xl font-bold mb-6" style={{ color: COLORS.textH }}>Benchmarks</h2>
+              <h2 className="text-xl font-bold mb-2" style={{ color: COLORS.textH }}>Benchmarks</h2>
+              <p className="text-sm mb-6" style={{ color: COLORS.textSecondary }}>TW = tripwire · PP = produto principal · LM = isca digital (lead&nbsp;magnet)</p>
               <div className="space-y-8">
                 <div>
                   <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Conversões</h3>
@@ -627,7 +668,7 @@ const DoubleSalesCalculator = () => {
                 </div>
                 <div>
                   <h3 className="font-bold mb-4" style={{ color: COLORS.textH }}>Alcance de publicações</h3>
-                  <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.primary, color: 'white' }}><th className="px-4 py-3 text-left">Conta</th><th className="px-4 py-3 text-center">Mediana</th><th className="px-4 py-3 text-center">Bom</th><th className="px-4 py-3 text-center">Viral</th></tr></thead>
+                  <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr style={{ backgroundColor: COLORS.primary, color: 'white' }}><th className="px-4 py-3 text-left">Seguidores</th><th className="px-4 py-3 text-center">Típico</th><th className="px-4 py-3 text-center">Bom</th><th className="px-4 py-3 text-center">Viral</th></tr></thead>
                     <tbody>{[{ s: '< 1K', m: '200-500', g: '1K+', v: '5K+' }, { s: '1-5K', m: '500-1,5K', g: '3K+', v: '10K+' }, { s: '5-20K', m: '1,5-5K', g: '10K+', v: '50K+' }, { s: '20-100K', m: '5-20K', g: '30K+', v: '100K+' }].map((r, i) => (<tr key={i} className="border-t" style={{ borderColor: COLORS.border }}><td className="px-4 py-3" style={{ color: COLORS.textBody }}>{r.s}</td><td className="px-4 py-3 text-center" style={{ color: COLORS.textBody }}>{r.m}</td><td className="px-4 py-3 text-center" style={{ color: '#4ADE80' }}>{r.g}</td><td className="px-4 py-3 text-center" style={{ color: '#5B9EE8' }}>{r.v}</td></tr>))}</tbody>
                   </table></div>
                 </div>
@@ -639,12 +680,12 @@ const DoubleSalesCalculator = () => {
               <div className="space-y-3">
                 {[
                   { w: '1', f: 'Estratégia', t: 'Linha de produtos + funil' },
-                  { w: '2', f: 'Criação do LM', t: 'Produto gratuito para atração' },
-                  { w: '3', f: 'Criação do TW', t: 'Tripwire — mini-produto pago de entrada' },
+                  { w: '2', f: 'Criação do LM', t: 'Isca digital — produto gratuito para atrair leads' },
+                  { w: '3', f: 'Criação do TW', t: 'Tripwire — miniproduto de ticket baixo' },
                   { w: '4', f: 'Parte técnica', t: 'Plataforma, automação WhatsApp, pagamento' },
                   { w: '5-6', f: 'Conteúdo', t: 'Atrair pessoas para o funil' },
-                  { w: '7-8', f: 'Inscrições', t: 'Coletar 20-30 inscrições' },
-                  { w: '9-10', f: 'Pré-lançamento', t: 'Aquecimento + preparação do PP e janela de vendas' },
+                  { w: '7-8', f: 'Inscrições', t: 'Conseguir de 20 a 30 inscrições' },
+                  { w: '9-10', f: 'Pré-lançamento', t: 'Aquecimento + preparação do PP e do evento de lançamento' },
                   { w: '11-12', f: 'LANÇAMENTO!', t: 'Vendas do produto principal (carro-chefe)', hl: true }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: item.hl ? COLORS.primary : COLORS.accent, color: 'white' }}>
@@ -660,13 +701,13 @@ const DoubleSalesCalculator = () => {
               <div className="space-y-3">
                 {[
                   'Não invista em tráfego pago antes de vender com conteúdo orgânico — assim você não joga dinheiro fora',
-                  'Faça tudo você mesmo no início. Comece a contratar equipe depois de R$5.000/mês',
+                  'Faça tudo por conta própria no início. Comece a montar equipe depois de faturar R$5.000/mês',
                   'Não construa um império de uma vez — comece pequeno. Quanto antes começar, antes vai faturar',
-                  'Siga a estratégia Double Sales: 3 produtos + funil automático + lançamento ao vivo',
-                  'Não tenha medo de vender pessoalmente pra quem deixou inscrição',
-                  'Até R$81.000/ano, registre-se como MEI — DAS fixo de R$81,05/mês (2026)',
-                  'Não tente fazer conteúdo perfeito — feito é melhor que perfeito',
-                  'Ofereça PIX com desconto + parcelamento 12x sem juros via plataforma'
+                  'Siga a estratégia Double Sales: 3 produtos + funil automático + lançamentos ao vivo',
+                  'Não tenha medo de vender pessoalmente para quem se inscreveu',
+                  'Até R$81.000/ano, registre-se como MEI — o imposto vira um valor fixo pequeno por mês',
+                  'Não trave buscando o conteúdo perfeito — feito é melhor que perfeito',
+                  'Conteúdo é a última etapa, não a primeira — só depois dos produtos prontos e do funil funcionando'
                 ].map((tip, idx) => (
                   <div key={idx} className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 text-white" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>{idx + 1}</span>
@@ -682,7 +723,11 @@ const DoubleSalesCalculator = () => {
       <footer className="py-6 px-4 mt-12 text-white" style={{ backgroundColor: COLORS.bg, borderTop: `1px solid ${COLORS.border}` }}>
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-2xl font-bold">DOUBLE SALES</p>
-          <p className="text-sm mt-2" style={{ opacity: 0.6 }}>@yuliya_tsapova</p>
+          <p className="text-sm mt-2">
+            <a href="https://www.instagram.com/yuliya_tsapova/" target="_blank" rel="noopener noreferrer" style={{ color: COLORS.accentLt, textDecoration: 'none' }}>@yuliya_tsapova</a>
+            <span style={{ opacity: 0.4 }}> · </span>
+            <a href="https://yuliyatsapova.com.br/" target="_blank" rel="noopener noreferrer" style={{ color: COLORS.accentLt, textDecoration: 'none' }}>yuliyatsapova.com.br</a>
+          </p>
         </div>
       </footer>
 
